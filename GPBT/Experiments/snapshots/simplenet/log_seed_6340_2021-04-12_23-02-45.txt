@@ -1,0 +1,70 @@
+save path : ./snapshots/simplenet
+{'data_path': './data/cifar.python', 'dataset': 'cifar10', 'arch': 'simplenet', 'epochs': 540, 'batch_size': 256, 'learning_rate': 0.1, 'momentum': 0.9366619557452647, 'decay': 0.002, 'print_freq': 200, 'save_path': './snapshots/simplenet', 'resume': '', 'start_epoch': 0, 'evaluate': False, 'ngpu': 1, 'workers': 2, 'manualSeed': 6340, 'use_cuda': False, 'aiteration': 0, 'drp': 0.1803826031134635, 'eps': 0.00381356032755337, 'eps_arch': 3.8120182452378605e-06, 'lr': 0.0001533380304730515, 'momentum_arch': 0.06286933081623423, 'weight_decay': 0.001100317143274146}
+Random Seed: 6340
+python version : 3.7.7 (default, May  7 2020, 21:25:33)  [GCC 7.3.0]
+torch  version : 1.6.0+cpu
+cudnn  version : None
+=> creating model 'simplenet'
+=> network :
+ simplenet(
+  (features): Sequential(
+    (0): Conv2d(3, 64, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(64, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+    (3): Conv2d(64, 128, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (4): BatchNorm2d(128, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (5): ReLU(inplace=True)
+    (6): Conv2d(128, 128, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (7): BatchNorm2d(128, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (8): ReLU(inplace=True)
+    (9): Conv2d(128, 128, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (10): BatchNorm2d(128, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (11): ReLU(inplace=True)
+    (12): MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0, dilation=(1, 1), ceil_mode=False)
+    (13): Dropout2d(p=0.1803826031134635, inplace=False)
+    (14): Conv2d(128, 128, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (15): BatchNorm2d(128, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (16): ReLU(inplace=True)
+    (17): Conv2d(128, 128, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (18): BatchNorm2d(128, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (19): ReLU(inplace=True)
+    (20): Conv2d(128, 256, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (21): BatchNorm2d(256, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (22): ReLU(inplace=True)
+    (23): MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0, dilation=(1, 1), ceil_mode=False)
+    (24): Dropout2d(p=0.1803826031134635, inplace=False)
+    (25): Conv2d(256, 256, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (26): BatchNorm2d(256, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (27): ReLU(inplace=True)
+    (28): Conv2d(256, 256, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (29): BatchNorm2d(256, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (30): ReLU(inplace=True)
+    (31): MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0, dilation=(1, 1), ceil_mode=False)
+    (32): Dropout2d(p=0.1803826031134635, inplace=False)
+    (33): Conv2d(256, 512, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (34): BatchNorm2d(512, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (35): ReLU(inplace=True)
+    (36): MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0, dilation=(1, 1), ceil_mode=False)
+    (37): Dropout2d(p=0.1803826031134635, inplace=False)
+    (38): Conv2d(512, 2048, kernel_size=[1, 1], stride=(1, 1))
+    (39): BatchNorm2d(2048, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (40): ReLU(inplace=True)
+    (41): Conv2d(2048, 256, kernel_size=[1, 1], stride=(1, 1))
+    (42): BatchNorm2d(256, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (43): ReLU(inplace=True)
+    (44): MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0, dilation=(1, 1), ceil_mode=False)
+    (45): Dropout2d(p=0.1803826031134635, inplace=False)
+    (46): Conv2d(256, 256, kernel_size=[3, 3], stride=(1, 1), padding=(1, 1))
+    (47): BatchNorm2d(256, eps=3.8120182452378605e-06, momentum=0.06286933081623423, affine=True, track_running_stats=True)
+    (48): ReLU(inplace=True)
+  )
+  (classifier): Linear(in_features=256, out_features=10, bias=True)
+  (drp): Dropout(p=0.1803826031134635, inplace=False)
+)
+=> Seed '6340'
+=> dataset mean and std '[0.4913725490196078, 0.4823529411764706, 0.4466666666666667] - [0.24705882352941178, 0.24352941176470588, 0.2615686274509804]'
+=> optimizer '{'optimizer': {'state': {}, 'param_groups': [{'lr': 0.0001533380304730515, 'rho': 0.9366619557452647, 'eps': 0.00381356032755337, 'weight_decay': 0.001100317143274146, 'params': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]}]}}'
+=> did not use any checkpoint for simplenet model
+
+==>>[2021-04-12 21:02:46] [Epoch=000/540] [Need: 00:00:00] [learning_rate=0.000153] [Best : Accuracy=0.00, Error=100.00]
+  Epoch: [000][000/196]   Time 8.235 (8.235)   Data 0.121 (0.121)   Loss 2.4217 (2.4217)   Prec@1 9.375 (9.375)   Prec@5 44.531 (44.531)   [2021-04-12 21:02:55]

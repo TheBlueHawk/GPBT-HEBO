@@ -1,0 +1,21 @@
+save path : ./snapshots/simplenet
+{'data_path': './data/cifar.python', 'dataset': 'cifar10', 'arch': 'simplenet', 'epochs': 540, 'batch_size': 100, 'learning_rate': 0.1, 'momentum': 0.8769599025127814, 'decay': 0.002, 'print_freq': 200, 'save_path': './snapshots/simplenet', 'resume': '', 'start_epoch': 0, 'evaluate': False, 'ngpu': 1, 'workers': 2, 'manualSeed': 2186, 'use_cuda': True, 'aiteration': 0, 'drp': 0.1189622161892511, 'eps': 0.009755955676043142, 'lr': 1.0970326680909423e-06, 'weight_decay': 0.00045108412825037357}
+Random Seed: 2186
+python version : 3.6.9 (default, Jan 26 2021, 15:33:00)  [GCC 8.4.0]
+torch  version : 1.6.0
+cudnn  version : 7605
+=> creating model 'simplenet'
+=> Seed '2186'
+=> dataset mean and std '[0.4913725490196078, 0.4823529411764706, 0.4466666666666667] - [0.24705882352941178, 0.24352941176470588, 0.2615686274509804]'
+=> did not use any checkpoint for simplenet model
+
+==>>[2021-05-04 07:14:18] [Epoch=000/540] [Need: 00:00:00] [learning_rate=0.000001] [Best : Accuracy=0.00, Error=100.00]
+  Epoch: [000][000/500]   Time 1.147 (1.147)   Data 0.091 (0.091)   Loss 2.3332 (2.3332)   Prec@1 11.000 (11.000)   Prec@5 48.000 (48.000)   [2021-05-04 07:14:19]
+  Epoch: [000][200/500]   Time 0.070 (0.074)   Data 0.000 (0.001)   Loss 2.3771 (2.3614)   Prec@1 12.000 (10.438)   Prec@5 49.000 (51.209)   [2021-05-04 07:14:33]
+  Epoch: [000][400/500]   Time 0.069 (0.072)   Data 0.000 (0.000)   Loss 2.3726 (2.3620)   Prec@1 6.000 (10.401)   Prec@5 51.000 (51.459)   [2021-05-04 07:14:47]
+  **Train** Prec@1 10.462 Prec@5 51.534 Error@1 89.538
+  **Test** Prec@1 9.820 Prec@5 48.540 Error@1 90.180
+
+==>>[2021-05-04 07:14:55] [Epoch=001/540] [Need: 00:00:00] [learning_rate=0.000001] [Best : Accuracy=9.82, Error=90.18]
+  Epoch: [001][000/500]   Time 0.114 (0.114)   Data 0.077 (0.077)   Loss 2.3670 (2.3670)   Prec@1 9.000 (9.000)   Prec@5 55.000 (55.000)   [2021-05-04 07:14:55]
+  Epoch: [001][200/500]   Time 0.069 (0.070)   Data 0.000 (0.000)   Loss 2.3174 (2.3619)   Prec@1 11.000 (10.418)   Prec@5 56.000 (51.343)   [2021-05-04 07:15:09]

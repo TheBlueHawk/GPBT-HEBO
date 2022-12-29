@@ -1,0 +1,7 @@
+save path : ./snapshots/simplenet
+{'data_path': './data/cifar.python', 'dataset': 'cifar10', 'arch': 'simplenet', 'epochs': 540, 'batch_size': 100, 'learning_rate': 0.1, 'momentum': 0.986840990784158, 'decay': 0.002, 'print_freq': 200, 'save_path': './snapshots/simplenet', 'resume': '', 'start_epoch': 0, 'evaluate': False, 'ngpu': 1, 'workers': 2, 'manualSeed': 856, 'use_cuda': True, 'aiteration': 0, 'drp': 0.0723926433927424, 'eps': 0.0012566205820790028, 'lr': 0.0005352566849346708, 'weight_decay': 0.0019052415597048285}
+Random Seed: 856
+python version : 3.7.10 (default, Feb 20 2021, 21:17:23)  [GCC 7.5.0]
+torch  version : 1.6.0
+cudnn  version : 7605
+=> creating model 'simplenet'

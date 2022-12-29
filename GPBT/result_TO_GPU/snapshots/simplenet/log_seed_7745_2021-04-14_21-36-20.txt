@@ -1,0 +1,30 @@
+save path : ./snapshots/simplenet
+{'data_path': './data/cifar.python', 'dataset': 'cifar10', 'arch': 'simplenet', 'epochs': 540, 'batch_size': 100, 'learning_rate': 0.1, 'momentum': 0.8157782839164381, 'decay': 0.002, 'print_freq': 200, 'save_path': './snapshots/simplenet', 'resume': '', 'start_epoch': 0, 'evaluate': False, 'ngpu': 1, 'workers': 2, 'manualSeed': 7745, 'use_cuda': True, 'aiteration': 0, 'drp': 0.04347526797467912, 'eps': 0.0035592526302349005, 'lr': 6.442995115156001e-05, 'weight_decay': 0.0009219651789226948}
+Random Seed: 7745
+python version : 3.7.10 (default, Feb 20 2021, 21:17:23)  [GCC 7.5.0]
+torch  version : 1.6.0
+cudnn  version : 7605
+=> creating model 'simplenet'
+=> Seed '7745'
+=> dataset mean and std '[0.4913725490196078, 0.4823529411764706, 0.4466666666666667] - [0.24705882352941178, 0.24352941176470588, 0.2615686274509804]'
+=> did not use any checkpoint for simplenet model
+
+==>>[2021-04-14 21:36:31] [Epoch=000/540] [Need: 00:00:00] [learning_rate=0.000064] [Best : Accuracy=0.00, Error=100.00]
+  Epoch: [000][000/500]   Time 1.269 (1.269)   Data 0.153 (0.153)   Loss 2.3597 (2.3597)   Prec@1 14.000 (14.000)   Prec@5 50.000 (50.000)   [2021-04-14 21:36:32]
+  Epoch: [000][200/500]   Time 0.071 (0.078)   Data 0.000 (0.001)   Loss 2.2453 (2.3455)   Prec@1 16.000 (11.318)   Prec@5 65.000 (52.478)   [2021-04-14 21:36:46]
+  Epoch: [000][400/500]   Time 0.075 (0.076)   Data 0.000 (0.000)   Loss 2.3672 (2.3415)   Prec@1 9.000 (11.536)   Prec@5 49.000 (52.688)   [2021-04-14 21:37:01]
+  **Train** Prec@1 11.604 Prec@5 52.912 Error@1 88.396
+  **Test** Prec@1 12.700 Prec@5 55.380 Error@1 87.300
+  **Test** Prec@1 12.560 Prec@5 55.200 Error@1 87.440
+
+==>>[2021-04-14 21:40:50] [Epoch=001/540] [Need: 00:00:00] [learning_rate=0.000064] [Best : Accuracy=12.70, Error=87.30]
+  Epoch: [001][000/500]   Time 0.207 (0.207)   Data 0.158 (0.158)   Loss 2.3020 (2.3020)   Prec@1 8.000 (8.000)   Prec@5 56.000 (56.000)   [2021-04-14 21:40:50]
+  Epoch: [001][200/500]   Time 0.078 (0.078)   Data 0.000 (0.001)   Loss 2.3145 (2.3244)   Prec@1 13.000 (11.945)   Prec@5 54.000 (54.771)   [2021-04-14 21:41:06]
+  Epoch: [001][400/500]   Time 0.081 (0.078)   Data 0.000 (0.001)   Loss 2.2622 (2.3214)   Prec@1 16.000 (12.135)   Prec@5 60.000 (55.127)   [2021-04-14 21:41:21]
+  **Train** Prec@1 12.180 Prec@5 55.386 Error@1 87.820
+  **Test** Prec@1 13.540 Prec@5 57.560 Error@1 86.460
+  **Test** Prec@1 12.760 Prec@5 57.940 Error@1 87.240
+
+==>>[2021-04-14 21:41:32] [Epoch=001/540] [Need: 00:00:00] [learning_rate=0.000128] [Best : Accuracy=12.70, Error=87.30]
+  Epoch: [001][000/500]   Time 0.223 (0.223)   Data 0.153 (0.153)   Loss 2.2886 (2.2886)   Prec@1 13.000 (13.000)   Prec@5 57.000 (57.000)   [2021-04-14 21:41:33]
+  Epoch: [001][200/500]   Time 0.077 (0.078)   Data 0.000 (0.001)   Loss 2.2878 (2.3202)   Prec@1 13.000 (12.239)   Prec@5 63.000 (54.866)   [2021-04-14 21:41:48]

@@ -1,0 +1,18 @@
+save path : ./snapshots/simplenet
+{'data_path': './data/cifar.python', 'dataset': 'cifar10', 'arch': 'simplenet', 'epochs': 540, 'batch_size': 100, 'learning_rate': 0.1, 'momentum': 0.9729595618549698, 'decay': 0.002, 'print_freq': 200, 'save_path': './snapshots/simplenet', 'resume': '', 'start_epoch': 0, 'evaluate': False, 'ngpu': 1, 'workers': 2, 'manualSeed': 1422, 'use_cuda': True, 'aiteration': 0, 'drp': 0.06123215845184499, 'eps': 0.005331089404344044, 'lr': 0.0005349318181950335, 'weight_decay': 0.00019813681291392974}
+Random Seed: 1422
+python version : 3.7.10 (default, Feb 20 2021, 21:17:23)  [GCC 7.5.0]
+torch  version : 1.6.0
+cudnn  version : 7605
+=> creating model 'simplenet'
+=> Seed '1422'
+=> dataset mean and std '[0.4913725490196078, 0.4823529411764706, 0.4466666666666667] - [0.24705882352941178, 0.24352941176470588, 0.2615686274509804]'
+=> did not use any checkpoint for simplenet model
+
+==>>[2021-04-15 08:07:50] [Epoch=000/540] [Need: 00:00:00] [learning_rate=0.000535] [Best : Accuracy=0.00, Error=100.00]
+  Epoch: [000][000/500]   Time 0.250 (0.250)   Data 0.189 (0.189)   Loss 2.4443 (2.4443)   Prec@1 6.000 (6.000)   Prec@5 50.000 (50.000)   [2021-04-15 08:07:50]
+  Epoch: [000][200/500]   Time 0.075 (0.076)   Data 0.000 (0.001)   Loss 2.3410 (2.3501)   Prec@1 11.000 (10.920)   Prec@5 55.000 (52.836)   [2021-04-15 08:08:05]
+  Epoch: [000][400/500]   Time 0.074 (0.075)   Data 0.000 (0.001)   Loss 2.2660 (2.3109)   Prec@1 18.000 (12.850)   Prec@5 59.000 (56.626)   [2021-04-15 08:08:20]
+  **Train** Prec@1 13.616 Prec@5 58.120 Error@1 86.384
+  **Test** Prec@1 18.200 Prec@5 66.800 Error@1 81.800
+  **Test** Prec@1 19.120 Prec@5 67.040 Error@1 80.880

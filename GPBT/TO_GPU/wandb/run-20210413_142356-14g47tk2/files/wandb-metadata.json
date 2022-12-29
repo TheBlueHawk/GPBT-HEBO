@@ -1,0 +1,26 @@
+{
+    "os": "Linux-4.19.112+-x86_64-with-Ubuntu-18.04-bionic",
+    "python": "3.7.10",
+    "heartbeatAt": "2021-04-13T14:24:11.866354",
+    "startedAt": "2021-04-13T14:23:56.731338",
+    "docker": null,
+    "gpu": "Tesla K80",
+    "gpu_count": 1,
+    "cpu_count": 2,
+    "cuda": "11.0.228",
+    "args": [
+        "-f",
+        "/root/.local/share/jupyter/runtime/kernel-31dc9d2c-e67a-4c92-96b4-2da23513f582.json"
+    ],
+    "state": "running",
+    "program": "SIMPLE_CIFAR.ipynb",
+    "root": "/gdrive/My Drive/To_GPU",
+    "git": {
+        "remote": "git@github.com:Pollux3737/FSN.git",
+        "commit": "a5d380d4dcc0abdb6e4e4f5949304c0fe111d1dc"
+    },
+    "email": null,
+    "host": "6a7000b70b7f",
+    "username": "root",
+    "executable": "/usr/bin/python3"
+}
