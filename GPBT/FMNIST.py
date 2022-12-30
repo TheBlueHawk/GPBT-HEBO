@@ -1,6 +1,7 @@
 #The 3 following cells aim at simuling the behavior of NN models with a simple model for MNIST
-!pip install ray==1.2.0
-!pip install -U hyperopt
+# !pip install ray==1.2.0
+# !pip install -U hyperopt
+import pandas as pd
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -14,6 +15,7 @@ from ray import tune
 from hyperopt import hp, fmin, tpe, Trials
 from functools import *
 from ray.tune.logger import *
+import copy
 import time
 
 EPOCH_SIZE = 32*32*8*32
@@ -69,6 +71,7 @@ torch.set_num_threads(8)
 # A random mnist from the internet to get a correct model to reason about
 
 class train_mnist():
+    DEFAULT_PATH = "/tmp/data"
     def __init__(self,config):
         
         self.config = {
@@ -87,7 +90,7 @@ class train_mnist():
         mnist_transforms = transforms.ToTensor()
 
         self.train_loader = DataLoader(
-            datasets.FashionMNIST(path, train=True, download=True , transform=mnist_transforms),
+            datasets.FashionMNIST(self.DEFAULT_PATH, train=True, download=True , transform=mnist_transforms),
             batch_size=1024,
             shuffle=True)
        # self.test_loader = DataLoader(
@@ -96,7 +99,7 @@ class train_mnist():
        #     shuffle=True)
 
         
-        test_valid_dataset = datasets.FashionMNIST(path, train=False, transform=mnist_transforms)
+        test_valid_dataset = datasets.FashionMNIST(self.DEFAULT_PATH, train=False, transform=mnist_transforms)
         valid_ratio = 0.5  
         nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
         nb_valid =  int(valid_ratio * len(test_valid_dataset))
@@ -134,9 +137,8 @@ class train_mnist():
                                      amsgrad=True)
         return temp
     
-    
-# All NN models should have a function train1 and test1 that calls the common train and test defined above.
-# train1 and test1 is then used in the scheduler
+    # All NN models should have a function train1 and test1 that calls the common train and test defined above.
+    # train1 and test1 is then used in the scheduler
     def train1(self):
         print("iteration: " + str(self.i) )
         self.i+=1
@@ -144,7 +146,7 @@ class train_mnist():
 
     def val1(self):
         return test(self.model, F.nll_loss, self.val_loader)
-        
+
     def test1(self):
         return test(self.model, F.nll_loss, self.test_loader)
 

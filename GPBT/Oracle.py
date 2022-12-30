@@ -1,6 +1,13 @@
+import copy
+import numpy as np
+from hebo.optimizers.hebo import HEBO
+import pandas as pd
+
+
 def set_iteration(algo,iteration):
   algo.space.paras["aiteration"].lb=iteration
   algo.space.paras["aiteration"].ub=iteration
+
 
 class Guesser():
     """Used to sample the hyperspace with the tools of `hyperopt`
@@ -14,9 +21,7 @@ class Guesser():
         print(self.searchspace)
         self.algo = HEBO(searchspace)
 
-
     def repeat_good(self, trials, iteration, function, configuration):
-
         configuration = copy.deepcopy(configuration)
         configuration["aiteration"] = iteration
         print(configuration)
@@ -33,4 +38,3 @@ class Guesser():
           rec1[key] = rec1[key][list(rec1[key].keys())[0]] 
          res = np.array([np.array([function(rec1)])])
          self.algo.observe(rec,res)
-

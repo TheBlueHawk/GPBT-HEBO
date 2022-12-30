@@ -1,3 +1,23 @@
+import math
+from functools import partial
+import numpy as np
+import time
+from Oracle import Guesser
+import pandas as pd
+
+from hebo.design_space.design_space import DesignSpace
+from hebo.optimizers.hebo import HEBO
+from hyperopt import hp, fmin, atpe, tpe, Trials
+import math
+from ray import tune
+from FMNIST import train_mnist
+import os
+import csv
+
+
+DEFAULT_PATH = "/tmp/data"
+os.makedirs(DEFAULT_PATH, exist_ok=True)
+
 class Parent():
     """Parent Class that handles the passage of Network Configurations from one step to the
     following
@@ -42,6 +62,7 @@ def translation(liste):
     #config["b1"] = liste[3]
     #config["b2"] = liste[4]
     return liste#config
+
 def test_function(x,models,h,losses, parent_model,k_f,iteration):
     x= translation(x)
 
@@ -209,9 +230,22 @@ class Scheduler():
             self.parents = temp_parents
 
 
+def flatten_dict(d: dict, delimiter="/") -> dict:
+    """
+    >>> d = {'a': 1,
+    ...     'c': {'a': 2, 'b': {'x': 5, 'y': 10}},
+    ...     'd': [1, 2, 3]}
+
+    >>> flatten_dict(d)
+    {'a': 1, 'd': [1, 2, 3], 'c_a': 2, 'c_b_x': 5, 'c_b_y': 10}
+    """
+    df = pd.json_normalize(d, sep=delimiter)
+    return df.to_dict(orient='records')[0]
+
+
 class FSVNLogger(tune.logger.Logger):
     def _init(self):
-        progress_file = os.path.join(path, "FSNV_MNIST_GP.csv")
+        progress_file = os.path.join(DEFAULT_PATH, "FSNV_MNIST_GP.csv")
         self._continuing = os.path.exists(progress_file)
         self._file = open(progress_file, "a")
         self._csv_out = None
