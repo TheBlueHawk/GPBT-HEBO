@@ -96,7 +96,7 @@ def test_function(x,models,h,losses, parent_model,k_f,iteration):
     fsvnlogger.on_result(temp)
 
     losses[k] = -loss
-    print("accuracy, " + str(loss) + "\n")
+    print("accuracy: " + str(loss) + "\n")
     return -loss
 
 

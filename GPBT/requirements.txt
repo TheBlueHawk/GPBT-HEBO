@@ -1,4 +1,5 @@
-ray==1.2.0
+#ray==1.2.0
+ray==1.8.0
 ray[tune]
 hyperopt
 torchvision

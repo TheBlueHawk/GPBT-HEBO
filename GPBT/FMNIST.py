@@ -24,6 +24,7 @@ TEST_SIZE = 256*32*32 #remove 1024
 #This is a function that can be used by several NN model
 def train(model, optimizer ,func ,train_loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("mps" if torch.backends.mps.is_available() else device)
     model.train()
     #for (data, target) in train_loader:
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -46,6 +47,7 @@ def train(model, optimizer ,func ,train_loader):
 #This is a function that can be used by several NN model (it only does accuracy ATM)
 def test(model, func, data_loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("mps" if torch.backends.mps.is_available() else device)
     model.eval()
     correct = 0.
     total = 0.
@@ -123,6 +125,7 @@ class train_mnist():
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config.get("lr", 0.01),  
                                      amsgrad=True)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("mps" if torch.backends.mps.is_available() else device)
         self.model.to(device)
     
     def adapt(self, config):
