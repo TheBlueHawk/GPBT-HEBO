@@ -2,6 +2,7 @@ import copy
 import numpy as np
 from hebo.optimizers.hebo import HEBO
 import pandas as pd
+import hyperopt
 
 
 def set_iteration(algo,iteration):
@@ -29,8 +30,9 @@ class Guesser():
         res = np.array([np.array([function(configuration)])])
         self.algo.observe(rec,res)
 
-    def compute_batch(self, trials, nb_eval, iteration, function):
-        set_iteration(self.algo, iteration) 
+    def compute_batch(self, trials: hyperopt.base.Trials, nb_eval, iteration, function):
+        print(trials.trials)
+        set_iteration(self.algo, iteration)
         for i in range(nb_eval):
          rec = self.algo.suggest(n_suggestions = 1,fix_input = {"aiteration":iteration})
          rec1 = rec.to_dict()
