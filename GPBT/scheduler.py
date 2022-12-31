@@ -53,6 +53,9 @@ class Parent():
     def get_loss(self):
         return self.loss_list
 
+    def set_point_hyperspace(self, point_hyperspace):
+        self.point_hyperspace = point_hyperspace
+
 
 def translation(liste):
    # config = {}
@@ -138,13 +141,15 @@ class Scheduler():
     
     def initialisation(self):
         num_config = self.num_config
-        extended_Hyperspace = Trials() #[None,None]
+        #extended_Hyperspace = Trials() #[None,None]
+        extended_Hyperspace = [[],[]]
         fmin_objective = partial(test_function, models=self.models,h=self.h,losses=self.losses,parent_model=self.models, k_f = self.k,iteration = 0)
         self.oracle.compute_batch(extended_Hyperspace ,num_config , 0 ,fmin_objective)
             
         indexes = np.argsort(self.losses)     
         self.out[0] = (self.losses[indexes])[0:self.sqrt_config]
-        self.hyperspaces = np.repeat(extended_Hyperspace,self.sqrt_config)    
+        #self.hyperspaces = np.repeat(extended_Hyperspace,self.sqrt_config)
+        self.hyperspaces = [extended_Hyperspace] * self.sqrt_config
         self.parents = np.array([Parent(copy.deepcopy(extended_Hyperspace),(self.h[indexes])[i], (self.models[indexes])[i],(self.losses[indexes])[i])  
                                  for i in range(self.sqrt_config) ])         
         self.plot[0] = self.losses[indexes][0]
@@ -191,6 +196,8 @@ class Scheduler():
                         len(parent.get_loss()),
                         fmin_objective
                     )
+                # Store new hyperspace points for parent, so that they get copied to new parent
+                parent.set_point_hyperspace(point_extended_hyperspace)
                     
 
             #self.oracle.Repeat_good(extended_Hyperspace ,i ,fmin_objective,parent.configuration_list[-1])
