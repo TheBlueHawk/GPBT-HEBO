@@ -26,10 +26,12 @@ class Guesser():
         trials[1] = self.algo.y.tolist()
 
     #Function to copy trials to HEBO should not be needed
-    """def copy_trials(self, trials):
+    def copy_trials(self, trials):
         if len(trials[0]) > 0:
-            df = pd.DataFrame(trials[0])
-            self.algo.observe(df, np.asarray(trials[1]))"""
+            self.algo.observe(pd.DataFrame(trials[0]), np.asarray(trials[1]))
+
+    def reset_HEBO(self):
+        self.algo = HEBO(self.searchspace)
 
     def repeat_good(self, trials, iteration, function, configuration):
         configuration = copy.deepcopy(configuration)
@@ -42,8 +44,9 @@ class Guesser():
 
     def compute_batch(self, trials: list, nb_eval, iteration, function):#hyperopt.base.Trials
         #print(trials.trials)
+        self.reset_HEBO()
         set_iteration(self.algo, iteration)
-        #self.copy_trials(trials)
+        self.copy_trials(trials)
         for i in range(nb_eval):
          rec = self.algo.suggest(n_suggestions = 1,fix_input = {"aiteration":iteration})
          rec1 = rec.to_dict()
