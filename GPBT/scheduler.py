@@ -10,9 +10,10 @@ from hebo.optimizers.hebo import HEBO
 from hyperopt import hp, fmin, atpe, tpe, Trials
 import math
 from ray import tune
-from FMNIST import train_mnist
+from FMNIST import train_test_class_fmnist
 import os
 import csv
+import copy
 
 
 DEFAULT_PATH = "/tmp/data"
@@ -57,18 +58,7 @@ class Parent():
         self.point_hyperspace = point_hyperspace
 
 
-def translation(liste):
-   # config = {}
-  #  config["lr"] = liste[0]
-    #config["droupout_prob"] = liste[1]
-    #config["weight_decay"] = liste[2]
-    #config["b1"] = liste[3]
-    #config["b2"] = liste[4]
-    return liste#config
-
 def test_function(x,models,h,losses, parent_model,k_f,iteration):
-    x= translation(x)
-
     if (isinstance(k_f,list)):
             k=k_f[0]
             Islist = True 
@@ -96,14 +86,12 @@ def test_function(x,models,h,losses, parent_model,k_f,iteration):
     temp = dict(x)
     temp.update({'loss' : loss})
     temp.update({'test' : test})
-    fsvnlogger.on_result(temp)
+    #fsvnlogger.on_result(temp)
 
     losses[k] = -loss
     print("accuracy: " + str(loss) + "\n")
     return -loss
 
-
-import copy
 
 
 class Scheduler():
@@ -270,39 +258,35 @@ class FSVNLogger(tune.logger.Logger):
         self._file.flush()
                    
 
-config= {
-     "lr": hp.loguniform("lr",-10*2.3,0)
-
-    #    , "droupout_prob": hp.uniform("droupout_prob",0,1)
-#          ,   "weight_decay": hp.loguniform("weight_decay",-5*2.3,-1*2),
-#    "b1" : 1-hp.loguniform("b1",-4*2.3, -1*2.3),
-#    "b2" : 1-hp.loguniform("b2",-5*2.3, -2*2.3)
-}
 
 
-config = DesignSpace().parse([{'name' : 'lr', 'type' : 'pow', 'lb' : math.e**-10, 'ub' : 1},
-                              {'name' : 'aiteration', 'type' : 'int', 'lb' : 0, 'ub' : 0}])
+def main():
+    config= {
+        "lr": hp.loguniform("lr",-10*2.3,0)
 
-fsvnlogger = FSVNLogger(config,"")
-
-
-
-
-    
-CONFIGURATION = 4
-ITERATIONS = 10
-
-model = train_mnist
-oracle = Guesser(config,0)
+        #    , "droupout_prob": hp.uniform("droupout_prob",0,1)
+    #          ,   "weight_decay": hp.loguniform("weight_decay",-5*2.3,-1*2),
+    #    "b1" : 1-hp.loguniform("b1",-4*2.3, -1*2.3),
+    #    "b2" : 1-hp.loguniform("b2",-5*2.3, -2*2.3)
+    }
 
 
-scheduler = Scheduler(
-  model,
-  ITERATIONS,
-  CONFIGURATION,
-  oracle) 
+    config = DesignSpace().parse([{'name' : 'lr', 'type' : 'pow', 'lb' : 1e-10, 'ub' : 1},
+                                {'name' : 'aiteration', 'type' : 'int', 'lb' : 0, 'ub' : 0}])
 
-start_time = time.time()
-scheduler.initialisation()     
-scheduler.loop()     
-print("totalt time: " +  str(time.time() - start_time))
+    fsvnlogger = FSVNLogger(config,"")
+        
+    CONFIGURATION = 4
+    ITERATIONS = 10
+
+    model = train_test_class_fmnist
+    oracle = Guesser(searchspace = config, verbose=False)
+    scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle) 
+    start_time = time.time()
+    scheduler.initialisation()     
+    scheduler.loop()     
+    print("totalt time: " +  str(time.time() - start_time))
+
+
+if __name__ == "__main__":
+    main()

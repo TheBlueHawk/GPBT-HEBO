@@ -72,10 +72,9 @@ torch.set_num_threads(8)
 
 # A random mnist from the internet to get a correct model to reason about
 
-class train_mnist():
-    DEFAULT_PATH = "/tmp/data"
+class train_test_class_fmnist:
     def __init__(self,config):
-        
+        self.DEFAULT_PATH = "/tmp/data"
         self.config = {
         "sigmoid_func": 1
       ,  "hidden_dim":64
@@ -154,8 +153,8 @@ class train_mnist():
         return test(self.model, F.nll_loss, self.test_loader)
 
     def step(self):
-        train1()
-        return val1()
+        self.train1()
+        return self.val1()
 
 # __INCEPTION_SCORE_begin__
 class LeNet(nn.Module):
@@ -215,12 +214,4 @@ class ConvNet(nn.Module):
             x=self.drop_out(x)
         x = self.last(x)
         return F.log_softmax(x, dim=1)
-
-
-#class Resnet(nn.Module):
-#  def __init__(self,config):
-#    super(ConvNet, self).__init__()
-#    self.under = torchvision.models.resnet50()
-
-#  def adapt(self, config):
 
