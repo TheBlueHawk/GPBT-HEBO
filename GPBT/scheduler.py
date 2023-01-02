@@ -58,7 +58,7 @@ class Parent():
         self.point_hyperspace = point_hyperspace
 
 
-def test_function(x,models,h,losses, parent_model,k_f,iteration):
+def test_function(x,models,h,losses, parent_model,k_f,iteration, fsvnlogger):
     if (isinstance(k_f,list)):
             k=k_f[0]
             Islist = True 
@@ -86,7 +86,7 @@ def test_function(x,models,h,losses, parent_model,k_f,iteration):
     temp = dict(x)
     temp.update({'loss' : loss})
     temp.update({'test' : test})
-    #fsvnlogger.on_result(temp)
+    fsvnlogger.on_result(temp)
 
     losses[k] = -loss
     print("accuracy: " + str(loss) + "\n")
@@ -96,7 +96,7 @@ def test_function(x,models,h,losses, parent_model,k_f,iteration):
 
 class Scheduler():
     def __init__(self, model, num_iteration, num_config,
-                 oracle):
+                 oracle, fsvnlogger):
         #Oracle manages the Bayesian optimization
         self.oracle = oracle
         self.iteration = num_iteration
@@ -126,12 +126,14 @@ class Scheduler():
         self.losses = np.zeros(num_config)
         
         self.k = [0] # c'est pour avoir un pointeur sur k, c'est pas plus que O(sqrt)-paralélisable  pour le moment du coup.
+
+        self.fsvnlogger = fsvnlogger
     
     def initialisation(self):
         num_config = self.num_config
         #extended_Hyperspace = Trials() #[None,None]
         extended_Hyperspace = [[],[]]
-        fmin_objective = partial(test_function, models=self.models,h=self.h,losses=self.losses,parent_model=self.models, k_f = self.k,iteration = 0)
+        fmin_objective = partial(test_function, models=self.models,h=self.h,losses=self.losses,parent_model=self.models, k_f = self.k,iteration = 0, fsvnlogger = self.fsvnlogger)
         self.oracle.compute_batch(extended_Hyperspace ,num_config , 0 ,fmin_objective)
             
         indexes = np.argsort(self.losses)     
@@ -156,7 +158,7 @@ class Scheduler():
                 print("\n loss of parent " + str(parent.get_loss()[-1]) )
                 print("\n loss " + str(parent.get_loss()))
                 
-                fmin_objective = partial(test_function, models=self.models,h=self.h,losses=self.losses,parent_model=parent.get_model(), k_f = self.k,iteration = len(parent.get_loss()))
+                fmin_objective = partial(test_function, models=self.models,h=self.h,losses=self.losses,parent_model=parent.get_model(), k_f = self.k,iteration = len(parent.get_loss()), fsvnlogger = self.fsvnlogger)
 
                     
                 if not parent.is_replicated:
@@ -277,11 +279,11 @@ def main():
     fsvnlogger = FSVNLogger(config,"")
         
     CONFIGURATION = 4
-    ITERATIONS = 10
+    ITERATIONS = 2
 
     model = train_test_class_fmnist
     oracle = Guesser(searchspace = config, verbose=False)
-    scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle) 
+    scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle, fsvnlogger) 
     start_time = time.time()
     scheduler.initialisation()     
     scheduler.loop()     
