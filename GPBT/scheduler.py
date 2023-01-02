@@ -16,7 +16,7 @@ import csv
 import copy
 
 
-DEFAULT_PATH = "/tmp/data"
+DEFAULT_PATH = "./tmp/data"
 os.makedirs(DEFAULT_PATH, exist_ok=True)
 
 class Parent():
@@ -116,7 +116,7 @@ class Scheduler():
         self.plot = np.zeros(num_iteration)
 
         
-        #self.model is the m model that will explore new hyperspace points at every iterations
+        #self.models are the m model that will explore new hyperspace points at every iterations
         self.models = np.repeat(model,num_config)
         
         #self.parents is the sqrt(m) best model from last iteration
@@ -264,24 +264,31 @@ class FSVNLogger(tune.logger.Logger):
 
 def main():
     config= {
-        "lr": hp.loguniform("lr",-10*2.3,0)
-
-        #    , "droupout_prob": hp.uniform("droupout_prob",0,1)
-    #          ,   "weight_decay": hp.loguniform("weight_decay",-5*2.3,-1*2),
-    #    "b1" : 1-hp.loguniform("b1",-4*2.3, -1*2.3),
-    #    "b2" : 1-hp.loguniform("b2",-5*2.3, -2*2.3)
+        "lr": hp.loguniform("lr",1e-5, 1e-1), 
+        "itération": 1,
+        "droupout_prob": hp.uniform("droupout_prob",0,1),
+        "weight_decay": hp.loguniform("weight_decay", 1e-5,1e-1),
+        "b1" : 1 - hp.loguniform("b1", 1e-4, 1e-1),
+        "b2" : 1 - hp.loguniform("b2", 1e-5, 1e-2)
     }
 
+    model = train_test_class_fmnist(config)
 
-    config = DesignSpace().parse([{'name' : 'lr', 'type' : 'pow', 'lb' : 1e-10, 'ub' : 1},
-                                {'name' : 'aiteration', 'type' : 'int', 'lb' : 0, 'ub' : 0}])
+
+    config = DesignSpace().parse([{'name' : 'b1', 'type' : 'num', 'lb' : 1e-1, 'ub' : 1e-4},
+                                {'name' : 'b2', 'type' : 'num', 'lb' : 1e-2, 'ub' : 1e-5},
+                                {'name' : 'droupout_prob', 'type' : 'num', 'lb' : 0, 'ub' : 1},
+                                {'name' : 'itération', 'type' : 'int', 'lb' : 0, 'ub' : 0},
+                                {'name' : 'lr', 'type' : 'num', 'lb' : 1e-5, 'ub' : 1},
+                                {'name' : 'weight_decay', 'type' : 'num', 'lb' : 0, 'ub' : 1},
+                                ])
 
     fsvnlogger = FSVNLogger(config,"")
         
     CONFIGURATION = 4
     ITERATIONS = 2
 
-    model = train_test_class_fmnist
+    
     oracle = Guesser(searchspace = config, verbose=False)
     scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle, fsvnlogger) 
     start_time = time.time()

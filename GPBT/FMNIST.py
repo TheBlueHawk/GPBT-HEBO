@@ -74,7 +74,7 @@ torch.set_num_threads(8)
 
 class train_test_class_fmnist:
     def __init__(self,config):
-        self.DEFAULT_PATH = "/tmp/data"
+        self.DEFAULT_PATH = "./tmp/data"
         self.config = {
         "sigmoid_func": 1
       ,  "hidden_dim":64
@@ -117,7 +117,7 @@ class train_test_class_fmnist:
 
         from torchvision import models
 
-        self.model = models.resnet50(num_classes = 30) #LeNet(192,64,10,
+        self.model = models.resnet50(num_classes = 30, ) #LeNet(192,64,10,
                     #3,
                     #config.get("droupout_prob",0.5) ,sigmoid_func_uniq)
         
@@ -134,9 +134,23 @@ class train_test_class_fmnist:
             temp.config[key] = value
         config = temp.config
 
-       # temp.model.adapt(config.get("droupout_prob", 0.5))
-        temp.optimizer = torch.optim.Adam(temp.model.parameters(), lr=config.get("lr", 0.01), 
-                                     amsgrad=True)
+        if config.get("b1", 0.999)>=1:
+          b1 = 1 - 1e-10
+        else:
+          b1 = 1-config.get("b1", 0.999)
+                
+        if config.get("b2", 0.999)>=1:
+          b2 = 1 - 1e-10
+        else:
+          b2 = 1-config.get("b2", 0.999)
+
+        temp.model.adapt(config.get("droupout_prob", 0.5))
+        temp.optimizer = torch.optim.Adam(
+            temp.model.parameters(), 
+            lr=config.get("lr", 0.01), 
+            betas=((b1,b2)),
+            weight_decay=config.get("weight_decay"),
+            amsgrad=True)
         return temp
     
     # All NN models should have a function train1 and test1 that calls the common train and test defined above.
