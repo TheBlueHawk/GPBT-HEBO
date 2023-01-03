@@ -11,7 +11,7 @@ from hebo.optimizers.hebo import HEBO
 from hyperopt import hp, fmin, atpe, tpe, Trials
 import math
 from ray import tune
-from FMNIST import train_test_class_fmnist
+from general_model import general_model
 import os
 import csv
 import copy
@@ -346,10 +346,10 @@ def main():
     ITERATIONS = 20
 
     for i in range(10):
-        model = train_test_class_fmnist
+        model = general_model
         oracle = Oracle(
             searchspace=config,
-            search_algo=HEBO,
+            search_algo=search_algo,
             net=net,
             dataset=dataset,
             verbose=False,

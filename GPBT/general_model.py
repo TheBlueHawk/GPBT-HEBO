@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-import math
 import numpy as np
 import random
 import math
@@ -73,7 +72,7 @@ torch.set_num_threads(8)
 # A random mnist from the internet to get a correct model to reason about
 
 
-class train_test_class_fmnist:
+class general_model:
     def __init__(self, config):
         self.DEFAULT_PATH = "./tmp/data"
         self.config = {"sigmoid_func": 1, "hidden_dim": 64, "n_layer": 3}
