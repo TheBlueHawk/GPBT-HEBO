@@ -82,8 +82,8 @@ class general_model:
         self.i = 0
 
         # TODO add MNIST and CIFAR
+        mnist_transforms = transforms.ToTensor()
         if config.get("dataset") == "FMNIST":
-            mnist_transforms = transforms.ToTensor()
             self.train_loader = DataLoader(
                 datasets.FashionMNIST(
                     self.DEFAULT_PATH,
@@ -96,7 +96,10 @@ class general_model:
             )
 
             test_valid_dataset = datasets.FashionMNIST(
-                self.DEFAULT_PATH, train=False, transform=mnist_transforms
+                self.DEFAULT_PATH,
+                train=False,
+                download=True,
+                transform=mnist_transforms,
             )
             valid_ratio = 0.5
             nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
@@ -105,8 +108,32 @@ class general_model:
                 test_valid_dataset, [nb_test, nb_valid]
             )
             self.test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=True)
-
             self.val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=True)
+        elif config.get("dataset") == "MNIST":
+            self.train_loader = DataLoader(
+                datasets.MNIST(
+                    self.DEFAULT_PATH,
+                    train=False,
+                    download=True,
+                    transform=mnist_transforms,
+                ),
+                batch_size=64,
+                shuffle=True,
+            )
+            test_valid_dataset = datasets.MNIST(
+                self.DEFAULT_PATH,
+                train=False,
+                download=True,
+                transform=mnist_transforms,
+            )
+            valid_ratio = 0.5
+            nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
+            nb_valid = int(valid_ratio * len(test_valid_dataset))
+            test_dataset, val_dataset = torch.utils.data.dataset.random_split(
+                test_valid_dataset, [nb_test, nb_valid]
+            )
+            self.test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True)
+            self.val_loader = DataLoader(val_dataset, batch_size=64, shuffle=True)
 
         # TODO add ConvNet and ResNet50
         if config.get("net") == "LeNet":
@@ -117,11 +144,6 @@ class general_model:
         # mnist_transforms = transforms.Compose(
         #     [transforms.ToTensor(),
         #      transforms.Normalize((0.1307, ), (0.3081, ))])
-
-        # self.test_loader = DataLoader(
-        #     datasets.MNIST("/gdrive/MyDrive", train=False, transform=mnist_transforms),
-        #     batch_size=64,
-        #     shuffle=True)
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),

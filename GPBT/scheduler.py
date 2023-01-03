@@ -344,8 +344,8 @@ def main():
         ]
     )
 
-    CONFIGURATION = 4
-    ITERATIONS = 20
+    NUM_CONFIGURATION = 25
+    ITERATIONS = 10
 
     for i in range(10):
         model = general_model
@@ -355,7 +355,7 @@ def main():
             verbose=False,
         )
         logger = Logger(config, iteration=i)
-        scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, logger)
+        scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
         start_time = time.time()
         scheduler.initialisation()
         scheduler.loop()
