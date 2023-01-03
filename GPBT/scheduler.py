@@ -271,7 +271,7 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
 
 class FSVNLogger(tune.logger.Logger):
     def _init(self):
-        progress_file = os.path.join(DEFAULT_PATH, "FSNV_MNIST_GP.csv")
+        progress_file = os.path.join(DEFAULT_PATH, "FSNV_FMNIST_GBPTHEBO.csv")
         self._continuing = os.path.exists(progress_file)
         self._file = open(progress_file, "a")
         self._csv_out = None
@@ -283,10 +283,10 @@ class FSVNLogger(tune.logger.Logger):
             self._csv_out = csv.DictWriter(self._file, result.keys())
             self._csv_out.writeheader()
 
-            # if not self._continuing:
-        self._csv_out.writerow(
-            {k: v for k, v in result.items() if k in self._csv_out.fieldnames}
-        )
+        if not self._continuing:
+            self._csv_out.writerow(
+                {k: v for k, v in result.items() if k in self._csv_out.fieldnames}
+            )
         self._file.flush()
 
 
@@ -299,19 +299,6 @@ def main():
         "b1": 1 - hp.loguniform("b1", 1e-4, 1e-1),
         "b2": 1 - hp.loguniform("b2", 1e-5, 1e-2),
     }
-
-    model = train_test_class_fmnist(config)
-
-    config = DesignSpace().parse(
-        [
-            {"name": "b1", "type": "num", "lb": 1e-1, "ub": 1e-4},
-            {"name": "b2", "type": "num", "lb": 1e-2, "ub": 1e-5},
-            {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
-            {"name": "itération", "type": "int", "lb": 0, "ub": 0},
-            {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
-            {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
-        ]
-    )
 
     config = DesignSpace().parse(
         [
@@ -327,9 +314,9 @@ def main():
     fsvnlogger = FSVNLogger(config, "")
 
     CONFIGURATION = 4
-    ITERATIONS = 2
+    ITERATIONS = 20
 
-
+    model = train_test_class_fmnist
     oracle = Guesser(searchspace = config, verbose=False)
     scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle, fsvnlogger) 
 
