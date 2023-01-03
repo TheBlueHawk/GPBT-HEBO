@@ -10,16 +10,17 @@ def set_iteration(algo, iteration):
     algo.space.paras["itération"].ub = iteration
 
 
-class Guesser:
+class Oracle:
     """Used to sample the hyperspace with the tools of `hyperopt`"""
 
-    def __init__(self, searchspace, verbose):
+    def __init__(self, searchspace, search_algo, net, dataset, verbose):
         self.searchspace = searchspace
         self.string = "itération"
-
+        self.net = net
+        self.dataset = dataset
         self.verbose = verbose
         print(self.searchspace)
-        self.algo = HEBO(searchspace)
+        self.algo = search_algo(searchspace)
 
     def store_trials(self, trials: list):
         trials[0] = (self.algo.X).to_dict("records")
@@ -31,6 +32,7 @@ class Guesser:
             self.algo.observe(pd.DataFrame(trials[0]), np.asarray(trials[1]))
 
     def reset_HEBO(self):
+        # TODO generalize
         self.algo = HEBO(self.searchspace)
 
     def repeat_good(self, trials, iteration, function, configuration):
@@ -46,6 +48,7 @@ class Guesser:
         self, trials: list, nb_eval, iteration, function
     ):  # hyperopt.base.Trials
         # print(trials.trials)
+        # TODO: generalize
         self.reset_HEBO()
         set_iteration(self.algo, iteration)
         self.copy_trials(trials)
@@ -56,6 +59,9 @@ class Guesser:
             rec1 = rec.to_dict()
             for key in rec1:
                 rec1[key] = rec1[key][list(rec1[key].keys())[0]]
+            rec1["net"] = self.net
+            rec1["dataset"] = self.dataset
+            print(rec1)
             res = np.array([np.array([function(rec1)])])
             self.algo.observe(rec, res)
         self.store_trials(trials)

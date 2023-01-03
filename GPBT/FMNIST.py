@@ -1,6 +1,3 @@
-# The 3 following cells aim at simuling the behavior of NN models with a simple model for MNIST
-# !pip install ray==1.2.0
-# !pip install -U hyperopt
 import pandas as pd
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
@@ -16,7 +13,10 @@ from hyperopt import hp, fmin, tpe, Trials
 from functools import *
 from ray.tune.logger import *
 import copy
+from torchvision import models
 import time
+
+from nets import LeNet
 
 EPOCH_SIZE = 32 * 32 * 8 * 32
 TEST_SIZE = 256 * 32 * 32  # remove 1024
@@ -83,43 +83,47 @@ class train_test_class_fmnist:
 
         self.i = 0
 
+        # TODO add MNIST and CIFAR
+        if config.get("dataset") == "FMNIST":
+            mnist_transforms = transforms.ToTensor()
+            self.train_loader = DataLoader(
+                datasets.FashionMNIST(
+                    self.DEFAULT_PATH,
+                    train=True,
+                    download=True,
+                    transform=mnist_transforms,
+                ),
+                batch_size=1024,
+                shuffle=True,
+            )
+
+            test_valid_dataset = datasets.FashionMNIST(
+                self.DEFAULT_PATH, train=False, transform=mnist_transforms
+            )
+            valid_ratio = 0.5
+            nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
+            nb_valid = int(valid_ratio * len(test_valid_dataset))
+            test_dataset, val_dataset = torch.utils.data.dataset.random_split(
+                test_valid_dataset, [nb_test, nb_valid]
+            )
+            self.test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=True)
+
+            self.val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=True)
+
+        # TODO add ConvNet and ResNet50
+        if config.get("net") == "LeNet":
+            self.model = LeNet(
+                192, 64, 10, 3, self.config.get("droupout_prob", 0.5), nn.Tanh()
+            )
+
         # mnist_transforms = transforms.Compose(
         #     [transforms.ToTensor(),
         #      transforms.Normalize((0.1307, ), (0.3081, ))])
-        mnist_transforms = transforms.ToTensor()
 
-        self.train_loader = DataLoader(
-            datasets.FashionMNIST(
-                self.DEFAULT_PATH, train=True, download=True, transform=mnist_transforms
-            ),
-            batch_size=1024,
-            shuffle=True,
-        )
         # self.test_loader = DataLoader(
         #     datasets.MNIST("/gdrive/MyDrive", train=False, transform=mnist_transforms),
         #     batch_size=64,
         #     shuffle=True)
-
-        test_valid_dataset = datasets.FashionMNIST(
-            self.DEFAULT_PATH, train=False, transform=mnist_transforms
-        )
-        valid_ratio = 0.5
-        nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
-        nb_valid = int(valid_ratio * len(test_valid_dataset))
-        test_dataset, val_dataset = torch.utils.data.dataset.random_split(
-            test_valid_dataset, [nb_test, nb_valid]
-        )
-        self.test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=True)
-
-        self.val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=True)
-
-        sigmoid_func_uniq = nn.Tanh()
-
-        from torchvision import models
-
-        self.model = LeNet(
-            192, 64, 10, 3, config.get("droupout_prob", 0.5), sigmoid_func_uniq
-        )
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
@@ -166,61 +170,3 @@ class train_test_class_fmnist:
     def step(self):
         self.train1()
         return self.val1()
-
-
-# __INCEPTION_SCORE_begin__
-class LeNet(nn.Module):
-    """
-    LeNet for MNist classification, used for inception_score
-    """
-
-    def __init__(self, input_dim, hidden_dim, output_dim, n_layers, drop_prob, sigmoid):
-        super(LeNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d(drop_prob)
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
-
-    def adapt(self, drop_prob):
-        self.conv2_drop = nn.Dropout2d(drop_prob)
-
-    def forward(self, x):
-        # print(x.shape)
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
-        x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
-
-
-# Convolution Neural network using Pytorch
-class ConvNet(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, n_layers, drop_prob, sigmoid):
-        super(ConvNet, self).__init__()
-
-        self.sigmoid = sigmoid
-        self.i_d = input_dim
-        self.hidden_dim = hidden_dim
-        self.n_layers = n_layers
-        self.conv1 = nn.Conv2d(1, 3, kernel_size=3)
-
-        self.fc = nn.Linear(input_dim, output_dim)
-        self.first = nn.Linear(input_dim, hidden_dim)
-        self.hidden = [nn.Linear(hidden_dim, hidden_dim) for _ in range(self.n_layers)]
-        self.drop_out = nn.Dropout(drop_prob)
-
-        self.last = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        x = self.sigmoid(F.max_pool2d(self.conv1(x), 3))
-        x = x.view(-1, self.i_d)
-        x = self.first(x)
-        x = self.drop_out(x)
-        for i in range(self.n_layers):
-            x = self.hidden[i](x)
-            x = self.drop_out(x)
-        x = self.last(x)
-        return F.log_softmax(x, dim=1)

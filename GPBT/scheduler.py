@@ -1,8 +1,9 @@
+import argparse
 import math
 from functools import partial
 import numpy as np
 import time
-from Oracle import Guesser
+from Oracle import Oracle
 import pandas as pd
 
 from hebo.design_space.design_space import DesignSpace
@@ -105,7 +106,7 @@ class Scheduler:
         self.sqrt_config = (
             2  # math.floor(math.sqrt(num_config)) # math.ceil(num_config/5) #
         )
-        self.n_parents = 1  # self.sqrt_config
+        self.n_parents = 2  # self.sqrt_config
         # self.h is for the m "h" used at every loop, h is a configuration from the search space
         self.h = np.repeat({}, num_config)
 
@@ -271,10 +272,10 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
 
 class Logger(tune.logger.Logger):
     def __init__(
-        self, config, algo="GBPTHEBO", dataset="FMNIST", model="LeNet", iteration=0
+        self, config, oracle="GBPTHEBO", dataset="FMNIST", net="LeNet", iteration=0
     ):
         self.config = config
-        filename = algo + "_" + dataset + "_" + model + "_" + str(iteration) + ".csv"
+        filename = oracle + "_" + dataset + "_" + net + "_" + str(iteration) + ".csv"
         progress_file = os.path.join(DEFAULT_PATH, filename)
         self.logdir = progress_file
         self._continuing = os.path.exists(progress_file)
@@ -297,6 +298,39 @@ class Logger(tune.logger.Logger):
 
 def main():
 
+    parser = argparse.ArgumentParser(description="Hyperparameter optimization")
+    parser.add_argument(
+        "--net",
+        type=str,
+        required=False,
+        choices=["LeNet", "ConvNet", "ResNet50"],
+        default="LeNet",
+        help="Underlying neural network architecture",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=False,
+        choices=["MNIST", "FMNIST", "CIFAR10"],
+        default="FMNIST",
+        help="Dataset used",
+    )
+    parser.add_argument(
+        "--algo",
+        type=str,
+        required=False,
+        choices=["HEBO", "HO", "PBT", "PB2", "BOHB"],
+        default="HEBO",
+        help="Dataset used",
+    )
+    args = parser.parse_args()
+
+    net = args.net
+    dataset = args.dataset
+
+    if args.algo == "HEBO":
+        search_algo = HEBO
+
     config = DesignSpace().parse(
         [
             {"name": "b1", "type": "num", "lb": 1e-1, "ub": 1e-4},
@@ -313,8 +347,14 @@ def main():
 
     for i in range(10):
         model = train_test_class_fmnist
+        oracle = Oracle(
+            searchspace=config,
+            search_algo=HEBO,
+            net=net,
+            dataset=dataset,
+            verbose=False,
+        )
         fsvnlogger = Logger(config, iteration=i)
-        oracle = Guesser(searchspace=config, verbose=False)
         scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, fsvnlogger)
         start_time = time.time()
         scheduler.initialisation()
