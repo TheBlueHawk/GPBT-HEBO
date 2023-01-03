@@ -62,7 +62,7 @@ class Parent:
         self.point_hyperspace = point_hyperspace
 
 
-def test_function(x, models, h, losses, parent_model, k_f, iteration, fsvnlogger):
+def test_function(x, models, h, losses, parent_model, k_f, iteration, logger):
     if isinstance(k_f, list):
         k = k_f[0]
         Islist = True
@@ -90,7 +90,7 @@ def test_function(x, models, h, losses, parent_model, k_f, iteration, fsvnlogger
     temp = dict(x)
     temp.update({"loss": loss})
     temp.update({"test": test})
-    fsvnlogger.on_result(temp)
+    logger.on_result(temp)
 
     losses[k] = -loss
     print("accuracy: " + str(loss) + "\n")
@@ -98,7 +98,7 @@ def test_function(x, models, h, losses, parent_model, k_f, iteration, fsvnlogger
 
 
 class Scheduler:
-    def __init__(self, model, num_iteration, num_config, oracle, fsvnlogger):
+    def __init__(self, model, num_iteration, num_config, oracle, logger):
         # Oracle manages the Bayesian optimization
         self.oracle = oracle
         self.iteration = num_iteration
@@ -130,7 +130,7 @@ class Scheduler:
         self.k = [
             0
         ]  # c'est pour avoir un pointeur sur k, c'est pas plus que O(sqrt)-paralélisable  pour le moment du coup.
-        self.fsvnlogger = fsvnlogger
+        self.logger = logger
 
     def initialisation(self):
         num_config = self.num_config
@@ -144,7 +144,7 @@ class Scheduler:
             parent_model=self.models,
             k_f=self.k,
             iteration=0,
-            fsvnlogger=self.fsvnlogger,
+            logger=self.logger,
         )
         self.oracle.compute_batch(extended_Hyperspace, num_config, 0, fmin_objective)
 
@@ -187,7 +187,7 @@ class Scheduler:
                     parent_model=parent.get_model(),
                     k_f=self.k,
                     iteration=len(parent.get_loss()),
-                    fsvnlogger=self.fsvnlogger,
+                    logger=self.logger,
                 )
 
                 if not parent.is_replicated:
@@ -336,9 +336,11 @@ def main():
             {"name": "b1", "type": "num", "lb": 1e-1, "ub": 1e-4},
             {"name": "b2", "type": "num", "lb": 1e-2, "ub": 1e-5},
             {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
-            {"name": "itération", "type": "int", "lb": 0, "ub": 0},
+            {"name": "iteration", "type": "int", "lb": 0, "ub": 0},
             {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
             {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
+            {"name": "net", "type": "cat", "categories": [net]},
+            {"name": "dataset", "type": "cat", "categories": [dataset]},
         ]
     )
 
@@ -350,12 +352,10 @@ def main():
         oracle = Oracle(
             searchspace=config,
             search_algo=search_algo,
-            net=net,
-            dataset=dataset,
             verbose=False,
         )
-        fsvnlogger = Logger(config, iteration=i)
-        scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, fsvnlogger)
+        logger = Logger(config, iteration=i)
+        scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, logger)
         start_time = time.time()
         scheduler.initialisation()
         scheduler.loop()

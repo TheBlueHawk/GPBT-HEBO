@@ -79,7 +79,6 @@ class general_model:
         for key, value in config.items():
             self.config[key] = value
         config = self.config
-
         self.i = 0
 
         # TODO add MNIST and CIFAR
@@ -127,7 +126,7 @@ class general_model:
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=config.get("lr", 0.01),
-            betas=((config.get("b1", 0.999), config.get("b2", 0.9999))),
+            betas=_get_betas(config),
             eps=config.get("eps", 1e-08),
             weight_decay=config.get("weight_decay", 0),
             amsgrad=True,
@@ -146,7 +145,7 @@ class general_model:
         temp.optimizer = torch.optim.Adam(
             temp.model.parameters(),
             lr=config.get("lr", 0.01),
-            betas=((config.get("b1", 0.999), config.get("b2", 0.9999))),
+            betas=_get_betas(config),
             eps=config.get("eps", 1e-08),
             weight_decay=config.get("weight_decay", 0),
             amsgrad=True,
@@ -169,3 +168,16 @@ class general_model:
     def step(self):
         self.train1()
         return self.val1()
+
+
+def _get_betas(config):
+    if config.get("b1", 0.999) >= 1:
+        b1 = 1 - 1e-10
+    else:
+        b1 = 1 - config.get("b1", 0.999)
+
+    if config.get("b2", 0.999) >= 1:
+        b2 = 1 - 1e-10
+    else:
+        b2 = 1 - config.get("b2", 0.999)
+    return (b1, b2)
