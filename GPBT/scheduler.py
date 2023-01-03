@@ -269,8 +269,10 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
     return df.to_dict(orient="records")[0]
 
 
-class FSVNLogger(tune.logger.Logger):
-    def __init__(self, config, algo = "GBPTHEBO", dataset = "FMNIST", model = "LeNet", iteration = 0):
+class Logger(tune.logger.Logger):
+    def __init__(
+        self, config, algo="GBPTHEBO", dataset="FMNIST", model="LeNet", iteration=0
+    ):
         self.config = config
         filename = algo + "_" + dataset + "_" + model + "_" + str(iteration) + ".csv"
         progress_file = os.path.join(DEFAULT_PATH, filename)
@@ -311,7 +313,7 @@ def main():
 
     for i in range(10):
         model = train_test_class_fmnist
-        fsvnlogger = FSVNLogger(config, iteration = i)
+        fsvnlogger = Logger(config, iteration=i)
         oracle = Guesser(searchspace=config, verbose=False)
         scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, fsvnlogger)
         start_time = time.time()

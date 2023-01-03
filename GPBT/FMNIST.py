@@ -117,15 +117,18 @@ class train_test_class_fmnist:
 
         from torchvision import models
 
-        self.model = LeNet(192,64,10,
-                    3,
-                    config.get("droupout_prob",0.5) ,sigmoid_func_uniq)
-        
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config.get("lr", 0.01), 
-                                     betas=((config.get("b1", 0.999),config.get("b2", 0.9999))),
-                                     eps=config.get("eps", 1e-08), 
-                                     weight_decay=config.get("weight_decay", 0), 
-                                     amsgrad=True)
+        self.model = LeNet(
+            192, 64, 10, 3, config.get("droupout_prob", 0.5), sigmoid_func_uniq
+        )
+
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=config.get("lr", 0.01),
+            betas=((config.get("b1", 0.999), config.get("b2", 0.9999))),
+            eps=config.get("eps", 1e-08),
+            weight_decay=config.get("weight_decay", 0),
+            amsgrad=True,
+        )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         device = torch.device("mps" if torch.backends.mps.is_available() else device)
         self.model.to(device)
@@ -137,11 +140,14 @@ class train_test_class_fmnist:
         config = temp.config
 
         temp.model.adapt(config.get("droupout_prob", 0.5))
-        temp.optimizer = torch.optim.Adam(temp.model.parameters(), lr=config.get("lr", 0.01), 
-                                     betas=((config.get("b1", 0.999),config.get("b2", 0.9999))),
-                                     eps=config.get("eps", 1e-08), 
-                                     weight_decay=config.get("weight_decay", 0), 
-                                     amsgrad=True)
+        temp.optimizer = torch.optim.Adam(
+            temp.model.parameters(),
+            lr=config.get("lr", 0.01),
+            betas=((config.get("b1", 0.999), config.get("b2", 0.9999))),
+            eps=config.get("eps", 1e-08),
+            weight_decay=config.get("weight_decay", 0),
+            amsgrad=True,
+        )
         return temp
 
     # All NN models should have a function train1 and test1 that calls the common train and test defined above.
