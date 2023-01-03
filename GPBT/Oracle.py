@@ -6,8 +6,8 @@ import hyperopt
 
 
 def set_iteration(algo,iteration):
-  algo.space.paras["aiteration"].lb=iteration
-  algo.space.paras["aiteration"].ub=iteration
+  algo.space.paras["itération"].lb=iteration
+  algo.space.paras["itération"].ub=iteration
 
 class Guesser():
     """Used to sample the hyperspace with the tools of `hyperopt`
@@ -15,7 +15,7 @@ class Guesser():
 
     def __init__(self, searchspace, verbose):
         self.searchspace = searchspace
-        self.string = "aiteration"
+        self.string = "itération"
 
         self.verbose = verbose
         print(self.searchspace)

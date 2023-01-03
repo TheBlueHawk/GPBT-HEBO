@@ -33,7 +33,8 @@ def train(model, optimizer ,func ,train_loader):
            # print("hehe")
             return
         # We set this just for the example to run quickly.
-        data = np.repeat(data, 3, 1)
+        # Why this
+        # data = np.repeat(data, 3, 1)
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
@@ -54,7 +55,7 @@ def test(model, func, data_loader):
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(data_loader):
             # We set this just for the example to run quickly.
-            data = np.repeat(data, 3, 1)
+            # data = np.repeat(data, 3, 1)
 
             data, target = data.to(device), target.to(device)
             outputs = model(data)
@@ -117,40 +118,31 @@ class train_test_class_fmnist:
 
         from torchvision import models
 
-        self.model = models.resnet50(num_classes = 30, ) #LeNet(192,64,10,
-                    #3,
-                    #config.get("droupout_prob",0.5) ,sigmoid_func_uniq)
+        self.model = LeNet(192,64,10,
+                    3,
+                    config.get("droupout_prob",0.5) ,sigmoid_func_uniq)
         
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config.get("lr", 0.01),  
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config.get("lr", 0.01), 
+                                     betas=((config.get("b1", 0.999),config.get("b2", 0.9999))),
+                                     eps=config.get("eps", 1e-08), 
+                                     weight_decay=config.get("weight_decay", 0), 
                                      amsgrad=True)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         device = torch.device("mps" if torch.backends.mps.is_available() else device)
         self.model.to(device)
     
     def adapt(self, config):
-        #print(self.optimizer)
         temp = copy.deepcopy(self)
         for key, value in config.items():
             temp.config[key] = value
         config = temp.config
 
-        if config.get("b1", 0.999)>=1:
-          b1 = 1 - 1e-10
-        else:
-          b1 = 1-config.get("b1", 0.999)
-                
-        if config.get("b2", 0.999)>=1:
-          b2 = 1 - 1e-10
-        else:
-          b2 = 1-config.get("b2", 0.999)
-
         temp.model.adapt(config.get("droupout_prob", 0.5))
-        temp.optimizer = torch.optim.Adam(
-            temp.model.parameters(), 
-            lr=config.get("lr", 0.01), 
-            betas=((b1,b2)),
-            weight_decay=config.get("weight_decay"),
-            amsgrad=True)
+        temp.optimizer = torch.optim.Adam(temp.model.parameters(), lr=config.get("lr", 0.01), 
+                                     betas=((config.get("b1", 0.999),config.get("b2", 0.9999))),
+                                     eps=config.get("eps", 1e-08), 
+                                     weight_decay=config.get("weight_decay", 0), 
+                                     amsgrad=True)
         return temp
     
     # All NN models should have a function train1 and test1 that calls the common train and test defined above.
@@ -189,6 +181,7 @@ class LeNet(nn.Module):
         self.conv2_drop = nn.Dropout2d(drop_prob)
         
     def forward(self, x):
+        # print(x.shape)
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, 320)

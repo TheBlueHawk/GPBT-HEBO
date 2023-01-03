@@ -272,7 +272,7 @@ def main():
         "b2" : 1 - hp.loguniform("b2", 1e-5, 1e-2)
     }
 
-    model = train_test_class_fmnist(config)
+    
 
 
     config = DesignSpace().parse([{'name' : 'b1', 'type' : 'num', 'lb' : 1e-1, 'ub' : 1e-4},
@@ -288,7 +288,7 @@ def main():
     CONFIGURATION = 4
     ITERATIONS = 2
 
-    
+    model = train_test_class_fmnist
     oracle = Guesser(searchspace = config, verbose=False)
     scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle, fsvnlogger) 
     start_time = time.time()
