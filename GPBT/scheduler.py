@@ -270,8 +270,11 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
 
 
 class FSVNLogger(tune.logger.Logger):
-    def _init(self):
-        progress_file = os.path.join(DEFAULT_PATH, "FSNV_FMNIST_GBPTHEBO.csv")
+    def __init__(self, config, algo = "GBPTHEBO", dataset = "FMNIST", model = "LeNet", iteration = 0):
+        self.config = config
+        filename = algo + "_" + dataset + "_" + model + "_" + str(iteration) + ".csv"
+        progress_file = os.path.join(DEFAULT_PATH, filename)
+        self.logdir = progress_file
         self._continuing = os.path.exists(progress_file)
         self._file = open(progress_file, "a")
         self._csv_out = None
@@ -291,14 +294,6 @@ class FSVNLogger(tune.logger.Logger):
 
 
 def main():
-    config = {
-        "lr": hp.loguniform("lr", 1e-5, 1e-1),
-        "itération": 1,
-        "droupout_prob": hp.uniform("droupout_prob", 0, 1),
-        "weight_decay": hp.loguniform("weight_decay", 1e-5, 1e-1),
-        "b1": 1 - hp.loguniform("b1", 1e-4, 1e-1),
-        "b2": 1 - hp.loguniform("b2", 1e-5, 1e-2),
-    }
 
     config = DesignSpace().parse(
         [
@@ -311,21 +306,18 @@ def main():
         ]
     )
 
-    fsvnlogger = FSVNLogger(config, "")
-
     CONFIGURATION = 4
     ITERATIONS = 20
 
-    model = train_test_class_fmnist
-    oracle = Guesser(searchspace = config, verbose=False)
-    scheduler = Scheduler(model,ITERATIONS,CONFIGURATION,oracle, fsvnlogger) 
-
-    oracle = Guesser(searchspace=config, verbose=False)
-    scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, fsvnlogger)
-    start_time = time.time()
-    scheduler.initialisation()
-    scheduler.loop()
-    print("totalt time: " + str(time.time() - start_time))
+    for i in range(10):
+        model = train_test_class_fmnist
+        fsvnlogger = FSVNLogger(config, iteration = i)
+        oracle = Guesser(searchspace=config, verbose=False)
+        scheduler = Scheduler(model, ITERATIONS, CONFIGURATION, oracle, fsvnlogger)
+        start_time = time.time()
+        scheduler.initialisation()
+        scheduler.loop()
+        print("totalt time: " + str(time.time() - start_time))
 
 
 if __name__ == "__main__":
