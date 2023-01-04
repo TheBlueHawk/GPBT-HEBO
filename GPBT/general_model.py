@@ -16,6 +16,8 @@ from torchvision import models
 import time
 from typing import *
 
+import torch.backends.mps
+
 from nets import LeNet
 
 EPOCH_SIZE = 32 * 32 * 8 * 32
@@ -119,7 +121,6 @@ class general_model:
         config = self.config
         self.i = 0
 
-        # TODO add MNIST and CIFAR
         tensor_transforms = transforms.ToTensor()
         if config.get("dataset") == "FMNIST":
             train_loader = DataLoader(
