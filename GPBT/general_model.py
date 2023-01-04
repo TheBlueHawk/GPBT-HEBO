@@ -22,7 +22,7 @@ EPOCH_SIZE = 32 * 32 * 8 * 32
 TEST_SIZE = 256 * 32 * 32  # remove 1024
 
 
-def compute_dataset_stats(train_loader: DataLoader) -> Tuple(float, float):
+def compute_dataset_stats(train_loader: DataLoader):
     """Compute dataset mean and std
 
     Args:
@@ -170,7 +170,7 @@ class general_model:
                 shuffle=True,
             )
             normalize_tensor_transform = compute_normalize_transform(train_loader)
-            train_loader = DataLoader(
+            self.train_loader = DataLoader(
                 datasets.MNIST(
                     self.DEFAULT_PATH,
                     train=True,
