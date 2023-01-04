@@ -14,11 +14,49 @@ from ray.tune.logger import *
 import copy
 from torchvision import models
 import time
+from typing import *
 
 from nets import LeNet
 
 EPOCH_SIZE = 32 * 32 * 8 * 32
 TEST_SIZE = 256 * 32 * 32  # remove 1024
+
+
+def compute_dataset_stats(train_loader: DataLoader) -> Tuple(float, float):
+    """Compute dataset mean and std
+
+    Args:
+        train_loader (DataLoader): train dataset
+
+    Returns:
+        Tuple(float, float): (mean, std)
+    """
+    n_samples_seen = 0.0
+    mean = 0
+    std = 0
+    for train_batch, train_target in train_loader:
+        batch_size = train_batch.shape[0]
+        train_batch = train_batch.view(batch_size, -1)
+        this_mean = torch.mean(train_batch, dim=1)
+        this_std = torch.sqrt(
+            torch.mean((train_batch - this_mean[:, None]) ** 2, dim=1)
+        )
+        mean += torch.sum(this_mean, dim=0)
+        std += torch.sum(this_std, dim=0)
+        n_samples_seen += batch_size
+
+    mean /= n_samples_seen
+    std /= n_samples_seen
+
+    return mean.view(1), std.view(1)
+
+
+def compute_normalize_transform(train_loader):
+    mean, std = compute_dataset_stats(train_loader)
+    return transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((mean,), (std,))]
+    )
+
 
 # This is a function that can be used by several NN model
 def train(model, optimizer, func, train_loader):
@@ -82,24 +120,35 @@ class general_model:
         self.i = 0
 
         # TODO add MNIST and CIFAR
-        mnist_transforms = transforms.ToTensor()
+        tensor_transforms = transforms.ToTensor()
         if config.get("dataset") == "FMNIST":
+            train_loader = DataLoader(
+                datasets.FashionMNIST(
+                    self.DEFAULT_PATH,
+                    train=True,
+                    download=True,
+                    transform=tensor_transforms,
+                ),
+                batch_size=1024,
+                shuffle=True,
+            )
+            normalize_tensor_transform = compute_normalize_transform(train_loader)
+
             self.train_loader = DataLoader(
                 datasets.FashionMNIST(
                     self.DEFAULT_PATH,
                     train=True,
                     download=True,
-                    transform=mnist_transforms,
+                    transform=normalize_tensor_transform,
                 ),
                 batch_size=1024,
                 shuffle=True,
             )
-
             test_valid_dataset = datasets.FashionMNIST(
                 self.DEFAULT_PATH,
                 train=False,
                 download=True,
-                transform=mnist_transforms,
+                transform=normalize_tensor_transform,
             )
             valid_ratio = 0.5
             nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
@@ -110,12 +159,23 @@ class general_model:
             self.test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=True)
             self.val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=True)
         elif config.get("dataset") == "MNIST":
-            self.train_loader = DataLoader(
+            train_loader = DataLoader(
                 datasets.MNIST(
                     self.DEFAULT_PATH,
                     train=True,
                     download=True,
-                    transform=mnist_transforms,
+                    transform=tensor_transforms,
+                ),
+                batch_size=64,
+                shuffle=True,
+            )
+            normalize_tensor_transform = compute_normalize_transform(train_loader)
+            train_loader = DataLoader(
+                datasets.MNIST(
+                    self.DEFAULT_PATH,
+                    train=True,
+                    download=True,
+                    transform=normalize_tensor_transform,
                 ),
                 batch_size=64,
                 shuffle=True,
@@ -124,7 +184,7 @@ class general_model:
                 self.DEFAULT_PATH,
                 train=False,
                 download=True,
-                transform=mnist_transforms,
+                transform=normalize_tensor_transform,
             )
             valid_ratio = 0.5
             nb_test = int((1.0 - valid_ratio) * len(test_valid_dataset))
@@ -140,10 +200,6 @@ class general_model:
             self.model = LeNet(
                 192, 64, 10, 3, self.config.get("droupout_prob", 0.5), nn.Tanh()
             )
-
-        # mnist_transforms = transforms.Compose(
-        #     [transforms.ToTensor(),
-        #      transforms.Normalize((0.1307, ), (0.3081, ))])
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
