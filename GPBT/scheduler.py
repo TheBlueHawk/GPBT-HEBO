@@ -15,6 +15,7 @@ from general_model import general_model
 import os
 import csv
 import copy
+from datetime import *
 
 
 DEFAULT_PATH = "./tmp/data"
@@ -275,8 +276,11 @@ class Logger(tune.logger.Logger):
         self, config, oracle="GBPTHEBO", dataset="FMNIST", net="LeNet", iteration=0
     ):
         self.config = config
-        filename = oracle + "_" + dataset + "_" + net + "_" + str(iteration) + ".csv"
-        progress_file = os.path.join(DEFAULT_PATH, filename)
+        timestamp = datetime.utcnow().strftime("%H_%M_%d_%m_%Y")
+        directory = os.path.join(DEFAULT_PATH, dataset, timestamp)
+        os.makedirs(directory, exist_ok=True)
+        filename = oracle + "_" + net + "_" + str(iteration) + ".csv"
+        progress_file = os.path.join(directory, filename)
         self.logdir = progress_file
         self._continuing = os.path.exists(progress_file)
         self._file = open(progress_file, "a")
@@ -356,10 +360,10 @@ def main():
         )
         logger = Logger(config, dataset=dataset, net=net, iteration=i)
         scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
-        start_time = time.time()
+        start_time = datetime.utcnow()
         scheduler.initialisation()
         scheduler.loop()
-        print("totalt time: " + str(time.time() - start_time))
+        print("totalt time: " + str(datetime.utcnow() - start_time))
 
 
 if __name__ == "__main__":
