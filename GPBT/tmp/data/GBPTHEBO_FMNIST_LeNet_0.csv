@@ -1,3 +1,4 @@
 b1,b2,droupout_prob,itération,lr,weight_decay,aiteration,net,dataset,loss,test
 b1,b2,droupout_prob,itération,lr,weight_decay,net,dataset,aiteration,loss,test
 b1,b2,droupout_prob,iteration,lr,weight_decay,net,dataset,loss,test
+b1,b2,droupout_prob,iteration,lr,weight_decay,net,dataset,loss,test

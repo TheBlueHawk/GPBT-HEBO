@@ -103,10 +103,10 @@ class Scheduler:
         self.oracle = oracle
         self.iteration = num_iteration
         self.num_config = num_config
-        self.sqrt_config = (
-            2  # math.floor(math.sqrt(num_config)) # math.ceil(num_config/5) #
-        )
-        self.n_parents = 2  # self.sqrt_config
+        # self.sqrt_config = math.floor(math.sqrt(num_config))
+        self.sqrt_config = math.ceil(num_config / 5)  #
+
+        self.n_parents = self.sqrt_config
         # self.h is for the m "h" used at every loop, h is a configuration from the search space
         self.h = np.repeat({}, num_config)
 
@@ -354,7 +354,7 @@ def main():
             search_algo=search_algo,
             verbose=False,
         )
-        logger = Logger(config, iteration=i)
+        logger = Logger(config, dataset=dataset, net=net, iteration=i)
         scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
         start_time = time.time()
         scheduler.initialisation()
