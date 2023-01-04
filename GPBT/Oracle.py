@@ -20,7 +20,7 @@ class Oracle:
         self.algo = search_algo(searchspace)
 
     def store_trials(self, trials: list):
-        trials[0] = (self.algo.X).to_dict("records")
+        trials[0] = self.algo.X.to_dict("records")
         trials[1] = self.algo.y.tolist()
 
     # Function to copy trials to HEBO should not be needed
