@@ -113,7 +113,7 @@ class general_model:
             self.train_loader = DataLoader(
                 datasets.MNIST(
                     self.DEFAULT_PATH,
-                    train=False,
+                    train=True,
                     download=True,
                     transform=mnist_transforms,
                 ),
