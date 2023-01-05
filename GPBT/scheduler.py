@@ -3,7 +3,6 @@ import math
 from functools import partial
 import numpy as np
 import time
-from Oracles import 
 from Oracles import GPBTHEBOracle, SimpleOracle, GPBTOracle
 import pandas as pd
 
@@ -422,10 +421,10 @@ def main():
     elif args.algo == "GPBTHEBO":
         search_algo = HEBO
         oracle = GPBTHEBOracle(
-                searchspace=config,
-                search_algo=search_algo,
-                verbose=False,
-            )
+            searchspace=config,
+            search_algo=search_algo,
+            verbose=False,
+        )
 
     # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
