@@ -3,7 +3,8 @@ import math
 from functools import partial
 import numpy as np
 import time
-from Oracles import GBPTOracle, SimpleOracle, BayesOpt
+from Oracles import 
+from Oracles import GPBTHEBOracle, SimpleOracle, GPBTOracle
 import pandas as pd
 
 from hebo.design_space.design_space import DesignSpace
@@ -283,7 +284,7 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
 
 class Logger(tune.logger.Logger):
     def __init__(
-        self, config, search_algo="GBPTHEBO", dataset="FMNIST", net="LeNet", iteration=0
+        self, config, search_algo="GPBTHEBO", dataset="FMNIST", net="LeNet", iteration=0
     ):
         self.config = config
         timestamp = datetime.utcnow().strftime("%H_%M_%d_%m_%Y")
@@ -372,8 +373,7 @@ def main():
             "net": args.net,
             "dataset": args.dataset,
         }
-    elif args.algo == "HEBO" or args.algo == "GBPTHEBO":
-        search_algo = HEBO
+    elif args.algo == "HEBO" or args.algo == "GPBTHEBO":
         config = DesignSpace().parse(
             [
                 {"name": "b1", "type": "num", "lb": 1e-4, "ub": 1e-1},
@@ -417,6 +417,15 @@ def main():
             time_attr="training_iteration",
             hyperparam_mutations=hp_bounds,
         )
+    elif args.algo == "GPBT":
+        oracle = GPBTOracle(searchspace=config)
+    elif args.algo == "GPBTHEBO":
+        search_algo = HEBO
+        oracle = GPBTHEBOracle(
+                searchspace=config,
+                search_algo=search_algo,
+                verbose=False,
+            )
 
     # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
@@ -450,12 +459,7 @@ def main():
                 resources_per_trial={"cpu": 8, "gpu": 1},
                 verbose=2,
             )
-        elif args.algo == "GBPT" or args.algo == "GBPTHEBO":
-            oracle = GBPTOracle(
-                searchspace=config,
-                search_algo=search_algo,
-                verbose=False,
-            )
+        elif args.algo == "GPBT" or args.algo == "GPBTHEBO":
             scheduler = Scheduler(
                 general_model, ITERATIONS, NUM_CONFIGURATION, oracle, logger
             )

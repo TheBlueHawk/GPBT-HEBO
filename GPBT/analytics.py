@@ -47,7 +47,7 @@ def getall(a):
     return (f, a[:, 1::2].std(1) / 2, g, a[:, 0::2].std(1) / 2)
 
 
-def process(algo="GBPTHEBO", dataset="FMNIST", model="LeNet", num_iteration=10):
+def process(algo="GPBTHEBO", dataset="FMNIST", model="LeNet", num_iteration=10):
     results = []
     for iteration in num_iteration:
         filename = algo + "_" + dataset + "_" + model + "_" + str(iteration) + ".csv"

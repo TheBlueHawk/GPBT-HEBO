@@ -12,7 +12,88 @@ def set_iteration(algo, iteration):
     algo.space.paras["iteration"].ub = iteration
 
 
-class GBPTOracle:
+class SimpleOracle:
+    def __init__(self, searchspace, search_algo):
+        self.search_algo = search_algo
+        self.searchspace = searchspace
+
+    def compute_Once(self, function, evals):
+        fmin(
+            function,
+            self.searchspace,
+            algo=self.search_algo,
+            max_evals=evals,
+            trials=Trials(),
+        )
+
+
+class GPBTOracle:
+    def __init__(self, searchspace):
+        # self.hyperspace is the original (input) searchspace
+        self.searchspace = searchspace
+
+    def repeat_good(self, trials, iteration, function, configuration):  # add space
+        space = copy.deepcopy(configuration)
+        for k, v in configuration.items():
+            space[k] = hp.uniform(k, -1e-10 + v, v + 1e-10)
+
+        curr_eval = getattr(trials, "_ids")
+        if curr_eval == set():
+            curr_eval = 0
+        else:
+            curr_eval = max(curr_eval) + 1
+        space["itération"] = hp.quniform(
+            "itération", -0.5 + iteration, 0.5 + iteration, 1
+        )
+        fmin(
+            function,
+            space,
+            algo=partial(tpe.suggest, n_startup_jobs=1),
+            max_evals=curr_eval + 1,
+            trials=trials,
+        )
+
+    def compute_once(self, trials, iteration, function):  # add space
+
+        space = copy.deepcopy(self.searchspace)
+        curr_eval = getattr(trials, "_ids")
+        if curr_eval == set():
+            curr_eval = 0
+        else:
+            curr_eval = max(curr_eval) + 1
+        space["itération"] = hp.quniform(
+            "itération", -0.5 + iteration, 0.5 + iteration, 1
+        )
+        fmin(
+            function,
+            space,
+            algo=partial(tpe.suggest, n_startup_jobs=1),
+            max_evals=curr_eval + 1,
+            trials=trials,
+        )
+
+    def compute_batch(self, trials, nb_eval, iteration, function):  # add space
+
+        space = copy.deepcopy(self.searchspace)
+        curr_eval = getattr(trials, "_ids")
+        if curr_eval == set():
+            curr_eval = 0
+        else:
+            curr_eval = max(curr_eval) + 1
+
+        space["itération"] = hp.quniform(
+            "itération", -0.5 + iteration, 0.5 + iteration, 1
+        )
+        fmin(
+            function,
+            space,
+            algo=partial(tpe.suggest, n_startup_jobs=1),
+            max_evals=curr_eval + nb_eval,
+            trials=trials,
+        )
+
+
+class GPBTHEBOracle:
     """Used to sample the hyperspace with the tools of `hyperopt`"""
 
     def __init__(self, searchspace, search_algo, verbose):
@@ -61,32 +142,3 @@ class GBPTOracle:
             res = np.array([np.array([function(rec1)])])
             self.algo.observe(rec, res)
         self.store_trials(trials)
-
-
-class SimpleOracle:
-    def __init__(self, searchspace, search_algo):
-        self.search_algo = search_algo
-        self.searchspace = searchspace
-
-    def compute_Once(self, function, evals):
-        fmin(
-            function,
-            self.searchspace,
-            algo=self.search_algo,
-            max_evals=evals,
-            trials=Trials(),
-        )
-
-
-class BayesOpt:
-    def __init__(self, searchspace):
-        self.searchspace = searchspace
-
-    def compute_Once(self, function, evals):
-        fmin(
-            function,
-            self.searchspace,
-            algo=partial(tpe.suggest, n_startup_jobs=1),
-            max_evals=evals,
-            trials=Trials(),
-        )
