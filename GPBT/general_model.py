@@ -231,6 +231,31 @@ class general_model:
         )
         return temp
 
+    def reset_config(self, config):
+        if "lr" in config:
+            for param_group in self.optimizer.param_groups:
+                param_group["lr"] = config.get("lr", 0.01)
+        if "b1" in config:
+            for param_group in self.optimizer.param_groups:
+                param_group["betas"] = (
+                    1 - 1e-10
+                    if config.get("b1", 0.999) >= 1
+                    else config.get("b1", 0.999),
+                    (
+                        1 - 1e-10
+                        if config.get("b2", 0.999) >= 1
+                        else config.get("b2", 0.999)
+                    ),
+                )
+        if "weight_decay" in config:
+            for param_group in self.optimizer.param_groups:
+                param_group["weight_decay"] = config.get("weight_decay", 0)
+
+        self.model.adapt(config.get("droupout_prob", 0.5))
+
+        self.config = config
+        return True
+
     # All NN models should have a function train1 and test1 that calls the common train and test defined above.
     # train1 and test1 is then used in the scheduler
     def train1(self):
@@ -247,6 +272,23 @@ class general_model:
     def step(self):
         self.train1()
         return self.val1()
+
+    def save_checkpoint(self, checkpoint_dir):
+        path = os.path.join(checkpoint_dir, "checkpoint")
+        torch.save(
+            {
+                "model": self.model.state_dict(),
+                "optim": self.optimizer.state_dict(),
+            },
+            path,
+        )
+        return checkpoint_dir
+
+    def load_checkpoint(self, checkpoint_dir):
+        path = os.path.join(checkpoint_dir, "checkpoint")
+        checkpoint = torch.load(path)
+        self.model.load_state_dict(checkpoint["model"])
+        self.optimizer.load_state_dict(checkpoint["optim"])
 
 
 def _get_betas(config):

@@ -16,7 +16,13 @@ import os
 import csv
 import copy
 from datetime import *
+import ray
+from ray.tune.schedulers.hb_bohb import HyperBandForBOHB
+from ray.tune.suggest import ConcurrencyLimiter
+from ray import tune
+from ray.tune.suggest.bohb import TuneBOHB
 
+from ray.tune.logger import CSVLoggerCallback
 
 DEFAULT_PATH = "./tmp/data"
 os.makedirs(DEFAULT_PATH, exist_ok=True)
@@ -355,13 +361,15 @@ def main():
         search_algo = partial(tpe.rand.suggest)
     elif args.algo == "BAYES":
         search_algo = partial(tpe.suggest, n_startup_jobs=1)
+    elif args.algo == "BOHB":
+        search_algo = TuneBOHB(metric="loss", mode="max")
 
     NUM_CONFIGURATION = 2
     ITERATIONS = 1
     NUM_EXPERIMENTS = 1
 
     for i in range(NUM_EXPERIMENTS):
-        model = general_model
+        start_time = datetime.utcnow()
         logger = Logger(
             config,
             search_algo=args.algo,
@@ -376,15 +384,34 @@ def main():
                 search_algo=search_algo,
                 verbose=False,
             )
-            scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
-            start_time = datetime.utcnow()
+            scheduler = Scheduler(
+                general_model, ITERATIONS, NUM_CONFIGURATION, oracle, logger
+            )
             scheduler.initialisation()
             scheduler.loop()
         elif args.algo == "RAND" or args.algo == "BAYES":
             oracle = SimpleOracle(config, search_algo)
-            start_time = datetime.utcnow()
+
             fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)
             oracle.compute_Once(fmin_objective, NUM_CONFIGURATION)
+        elif args.algo == "BOHB":
+            ray.shutdown()
+            ray.init()
+            bohb = HyperBandForBOHB(
+                time_attr="training_iteration",
+                metric="loss",
+                mode="max",
+                max_t=ITERATIONS,
+            )
+            analysis = tune.run(
+                general_model,
+                config=config,
+                scheduler=bohb,
+                search_alg=search_algo,
+                num_samples=NUM_CONFIGURATION,
+                loggers=[Logger],
+                resources_per_trial={"cpu": 8, "gpu": 1},
+            )
 
         print("totalt time: " + str(datetime.utcnow() - start_time))
 
