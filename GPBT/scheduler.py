@@ -334,9 +334,9 @@ def main():
         "--algo",
         type=str,
         required=False,
-        choices=["GPBTHEBO", "GPBT", "HEBO", "RAND", "BAYES", "PBT", "PB2", "BOHB"],
+        choices=["RAND", "BAYES", "BOHB", "PBT", "PB2", "GPBT", "HEBO", "GPBTHEBO"],
         default="GPBTHEBO",
-        help="Dataset used",
+        help="Choice of search_algo and scheduler",
     )
     args = parser.parse_args()
 
@@ -351,21 +351,7 @@ def main():
         "dataset": args.dataset,
     }
 
-    if args.algo == "HEBO" or args.algo == "GBPTHEBO":
-        search_algo = HEBO
-        config = DesignSpace().parse(
-            [
-                {"name": "b1", "type": "num", "lb": 1e-4, "ub": 1e-1},
-                {"name": "b2", "type": "num", "lb": 1e-5, "ub": 1e-2},
-                {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
-                {"name": "iteration", "type": "int", "lb": 0, "ub": 0},
-                {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
-                {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
-                {"name": "net", "type": "cat", "categories": [args.net]},
-                {"name": "dataset", "type": "cat", "categories": [args.dataset]},
-            ]
-        )
-    if args.algo == "PB2":
+    if args.algo == "PBT" or args.algo == "PB2":
         hp_bounds = config = {
             "b1": [1e-4, 1e-1],
             "b2": [1e-5, 1e-2],
@@ -386,8 +372,22 @@ def main():
             "net": args.net,
             "dataset": args.dataset,
         }
+    elif args.algo == "HEBO" or args.algo == "GBPTHEBO":
+        search_algo = HEBO
+        config = DesignSpace().parse(
+            [
+                {"name": "b1", "type": "num", "lb": 1e-4, "ub": 1e-1},
+                {"name": "b2", "type": "num", "lb": 1e-5, "ub": 1e-2},
+                {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
+                {"name": "iteration", "type": "int", "lb": 0, "ub": 0},
+                {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
+                {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
+                {"name": "net", "type": "cat", "categories": [args.net]},
+                {"name": "dataset", "type": "cat", "categories": [args.dataset]},
+            ]
+        )
 
-    elif args.algo == "RAND":
+    if args.algo == "RAND":
         search_algo = partial(tpe.rand.suggest)
     elif args.algo == "BAYES":
         search_algo = partial(tpe.suggest, n_startup_jobs=1)
@@ -401,12 +401,21 @@ def main():
         )
     elif args.algo == "PB2":
         search_algo = ConcurrencyLimiter(
-            HyperOptSearch(metric="loss", mode="max"), max_concurrent=NUM_CONFIGURATION
+            HyperOptSearch(metric="loss", mode="max"), max_concurrent=25
         )
         scheduler = PB2(
             time_attr="training_iteration",
             perturbation_interval=2,
             hyperparam_bounds=hp_bounds,
+        )
+    elif args.algo == "PBT":
+        search_algo = ConcurrencyLimiter(
+            HyperOptSearch(metric="loss", mode="max"), max_concurrent=4
+        )
+        scheduler = PopulationBasedTraining(
+            perturbation_interval=1,
+            time_attr="training_iteration",
+            hyperparam_mutations=hp_bounds,
         )
 
     # Main experiment loop
@@ -420,25 +429,13 @@ def main():
             iteration=i,
         )
 
-        if args.algo == "GBPT" or args.algo == "GBPTHEBO":
-            oracle = GBPTOracle(
-                searchspace=config,
-                search_algo=search_algo,
-                verbose=False,
-            )
-            scheduler = Scheduler(
-                general_model, ITERATIONS, NUM_CONFIGURATION, oracle, logger
-            )
-            scheduler.initialisation()
-            scheduler.loop()
-        elif args.algo == "RAND" or args.algo == "BAYES":
+        if args.algo == "RAND" or args.algo == "BAYES":
             oracle = SimpleOracle(config, search_algo)
             fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)
             oracle.compute_Once(fmin_objective, NUM_CONFIGURATION)
-        elif args.algo == "BOHB" or args.algo == "PB2":
+        elif args.algo == "BOHB" or args.algo == "PBT" or args.algo == "PB2":
             ray.shutdown()
             ray.init()
-
             analysis = tune.run(
                 general_model,
                 config=config,
@@ -453,8 +450,17 @@ def main():
                 resources_per_trial={"cpu": 8, "gpu": 1},
                 verbose=2,
             )
-
-        a = solve_triangular(a, b)
+        elif args.algo == "GBPT" or args.algo == "GBPTHEBO":
+            oracle = GBPTOracle(
+                searchspace=config,
+                search_algo=search_algo,
+                verbose=False,
+            )
+            scheduler = Scheduler(
+                general_model, ITERATIONS, NUM_CONFIGURATION, oracle, logger
+            )
+            scheduler.initialisation()
+            scheduler.loop()
 
         print("totalt time: " + str(datetime.utcnow() - start_time))
 
