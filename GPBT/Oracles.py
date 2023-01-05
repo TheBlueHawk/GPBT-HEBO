@@ -1,8 +1,10 @@
 import copy
+from functools import partial
 import numpy as np
 from hebo.optimizers.hebo import HEBO
 import pandas as pd
 import hyperopt
+from hyperopt import hp, fmin, tpe, Trials
 
 
 def set_iteration(algo, iteration):
@@ -10,13 +12,14 @@ def set_iteration(algo, iteration):
     algo.space.paras["iteration"].ub = iteration
 
 
-class Oracle:
+class GBPTOracle:
     """Used to sample the hyperspace with the tools of `hyperopt`"""
 
     def __init__(self, searchspace, search_algo, verbose):
         self.searchspace = searchspace
         self.verbose = verbose
         print(self.searchspace)
+        self.search_algo = search_algo
         self.algo = search_algo(searchspace)
 
     def store_trials(self, trials: list):
@@ -30,7 +33,7 @@ class Oracle:
 
     def reset_HEBO(self):
         # TODO generalize
-        self.algo = HEBO(self.searchspace)
+        self.algo = self.search_algo(self.searchspace)
 
     def repeat_good(self, trials, iteration, function, configuration):
         configuration = copy.deepcopy(configuration)
@@ -58,3 +61,31 @@ class Oracle:
             res = np.array([np.array([function(rec1)])])
             self.algo.observe(rec, res)
         self.store_trials(trials)
+
+
+class RandomOpt:
+    def __init__(self, searchspace):
+        self.searchspace = searchspace
+
+    def compute_Once(self, function, evals):
+        fmin(
+            function,
+            self.searchspace,
+            algo=partial(tpe.rand.suggest),
+            max_evals=evals,
+            trials=Trials(),
+        )
+
+
+class BayesOpt:
+    def __init__(self, searchspace):
+        self.searchspace = searchspace
+
+    def compute_Once(self, function, evals):
+        fmin(
+            function,
+            self.searchspace,
+            algo=partial(tpe.suggest, n_startup_jobs=1),
+            max_evals=evals,
+            trials=Trials(),
+        )

@@ -3,7 +3,7 @@ import math
 from functools import partial
 import numpy as np
 import time
-from Oracle import Oracle
+from Oracles import GBPTOracle, RandomOpt, BayesOpt
 import pandas as pd
 
 from hebo.design_space.design_space import DesignSpace
@@ -292,8 +292,6 @@ class Logger(tune.logger.Logger):
         if self._csv_out is None:
             self._csv_out = csv.DictWriter(self._file, result.keys())
             self._csv_out.writeheader()
-
-        if not self._continuing:
             self._csv_out.writerow(
                 {k: v for k, v in result.items() if k in self._csv_out.fieldnames}
             )
@@ -301,7 +299,6 @@ class Logger(tune.logger.Logger):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Hyperparameter optimization")
     parser.add_argument(
         "--net",
@@ -323,47 +320,77 @@ def main():
         "--algo",
         type=str,
         required=False,
-        choices=["HEBO", "HO", "PBT", "PB2", "BOHB"],
-        default="HEBO",
+        choices=["GPBTHEBO", "GPBT", "HEBO", "RAND", "HO", "PBT", "PB2", "BOHB"],
+        default="GPBTHEBO",
         help="Dataset used",
     )
     args = parser.parse_args()
 
-    net = args.net
-    dataset = args.dataset
+    config = {
+        "b1": hp.uniform("b1", 1e-4, 1e-1),
+        "b2": hp.uniform("b2", 1e-5, 1e-2),
+        "iteration": [0],
+        "droupout_prob": hp.uniform("droupout_prob", 0, 1),
+        "lr": hp.uniform("lr", 1e-5, 1),
+        "weight_decay": hp.uniform("weight_decay", 0, 1),
+        "net": args.net,
+        "dataset": args.dataset,
+    }
 
-    if args.algo == "HEBO":
+    if args.algo == "HEBO" or args.algo == "GBPTHEBO":
         search_algo = HEBO
-
-    config = DesignSpace().parse(
-        [
-            {"name": "b1", "type": "num", "lb": 1e-1, "ub": 1e-4},
-            {"name": "b2", "type": "num", "lb": 1e-2, "ub": 1e-5},
-            {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
-            {"name": "iteration", "type": "int", "lb": 0, "ub": 0},
-            {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
-            {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
-            {"name": "net", "type": "cat", "categories": [net]},
-            {"name": "dataset", "type": "cat", "categories": [dataset]},
-        ]
-    )
-
-    NUM_CONFIGURATION = 25
-    ITERATIONS = 10
-
-    for i in range(10):
-        model = general_model
-        oracle = Oracle(
-            searchspace=config,
-            search_algo=search_algo,
-            verbose=False,
+        config = DesignSpace().parse(
+            [
+                {"name": "b1", "type": "num", "lb": 1e-4, "ub": 1e-1},
+                {"name": "b2", "type": "num", "lb": 1e-5, "ub": 1e-2},
+                {"name": "droupout_prob", "type": "num", "lb": 0, "ub": 1},
+                {"name": "iteration", "type": "int", "lb": 0, "ub": 0},
+                {"name": "lr", "type": "num", "lb": 1e-5, "ub": 1},
+                {"name": "weight_decay", "type": "num", "lb": 0, "ub": 1},
+                {"name": "net", "type": "cat", "categories": [args.net]},
+                {"name": "dataset", "type": "cat", "categories": [args.dataset]},
+            ]
         )
-        logger = Logger(config, dataset=dataset, net=net, iteration=i)
-        scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
-        start_time = datetime.utcnow()
-        scheduler.initialisation()
-        scheduler.loop()
+
+    NUM_CONFIGURATION = 2
+    ITERATIONS = 1
+    NUM_EXPERIMENTS = 1
+
+    for i in range(NUM_EXPERIMENTS):
+        model = general_model
+        logger = Logger(config, dataset=args.dataset, net=args.net, iteration=i)
+
+        if args.algo == "GBPT" or args.algo == "GBPTHEBO":
+            oracle = GBPTOracle(
+                searchspace=config,
+                search_algo=search_algo,
+                verbose=False,
+            )
+            scheduler = Scheduler(model, ITERATIONS, NUM_CONFIGURATION, oracle, logger)
+            start_time = datetime.utcnow()
+            scheduler.initialisation()
+            scheduler.loop()
+        elif args.algo == "RAND":
+            oracle = RandomOpt(config)
+            start_time = datetime.utcnow()
+            fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)
+            oracle.compute_Once(fmin_objective, NUM_CONFIGURATION)
+
         print("totalt time: " + str(datetime.utcnow() - start_time))
+
+
+def basic_loop(x, iterations, logger):
+    model = general_model(x)
+    for _ in range(iterations):  # Iterations
+        model.train1()
+        loss = model.test1()
+        test = model.val1()
+        temp = dict(x)
+        temp.update({"loss": loss})
+        temp.update({"test": test})
+        temp.update({"iteration": model.i})
+        logger.on_result(result=temp)
+    return -loss
 
 
 if __name__ == "__main__":
