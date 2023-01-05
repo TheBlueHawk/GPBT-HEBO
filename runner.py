@@ -158,18 +158,16 @@ def main():
             verbose=False,
         )
 
-    logger = Logger(
-        config,
-        search_algo=args.algo,
-        dataset=args.dataset,
-        net=args.net,
-        iteration=i,
-    )
-
     # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
         start_time = datetime.utcnow()
-
+        logger = Logger(
+            config,
+            search_algo=args.algo,
+            dataset=args.dataset,
+            net=args.net,
+            iteration=i,
+        )
         if args.algo == "RAND" or args.algo == "BAYES":
             oracle = SimpleOracle(config, search_algo)
             fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)

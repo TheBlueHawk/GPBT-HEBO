@@ -42,7 +42,7 @@ class Logger(tune.logger.Logger):
         if self._csv_out is None:
             self._csv_out = csv.DictWriter(self._file, result.keys())
             self._csv_out.writeheader()
-            self._csv_out.writerow(
-                {k: v for k, v in result.items() if k in self._csv_out.fieldnames}
-            )
+        self._csv_out.writerow(
+            {k: v for k, v in result.items() if k in self._csv_out.fieldnames}
+        )
         self._file.flush()
