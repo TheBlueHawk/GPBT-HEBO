@@ -262,7 +262,6 @@ class Scheduler:
                     )
                     temp_parents[j].update(self.h[x], self.losses[x], self.models[x])
             #     temp_parents[j].point_hyperspace = Trials()
-
             self.parents = temp_parents
 
 
