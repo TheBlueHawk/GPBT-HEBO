@@ -24,8 +24,6 @@ from ray import tune
 from ray.tune.suggest.bohb import TuneBOHB
 from ray.tune.schedulers.pb2 import PB2
 from ray.tune.schedulers.pbt import PopulationBasedTraining
-from ray.tune.logger import CSVLoggerCallback
-from torch.linalg import solve_triangular
 
 
 DEFAULT_PATH = "./tmp/data"
@@ -309,10 +307,6 @@ class Logger(tune.logger.Logger):
 
 
 def main():
-    NUM_CONFIGURATION = 2
-    ITERATIONS = 1
-    NUM_EXPERIMENTS = 1
-
     parser = argparse.ArgumentParser(description="Hyperparameter optimization")
     parser.add_argument(
         "--net",
@@ -338,7 +332,32 @@ def main():
         default="GPBTHEBO",
         help="Choice of search_algo and scheduler",
     )
+    parser.add_argument(
+        "--num_configs",
+        type=int,
+        required=False,
+        default=25,
+        help="Number of configuration explored",
+    )
+    parser.add_argument(
+        "--num_iterations",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of iteration per exploration",
+    )
+    parser.add_argument(
+        "--num_experiments",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of repetition for the current experiment",
+    )
     args = parser.parse_args()
+
+    NUM_CONFIGURATION = args.num_configs
+    ITERATIONS = args.num_iterations
+    NUM_EXPERIMENTS = args.num_experiments
 
     config = {
         "b1": hp.uniform("b1", 1e-4, 1e-1),
