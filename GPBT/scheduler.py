@@ -3,7 +3,7 @@ import math
 from functools import partial
 import numpy as np
 import time
-from Oracles import GBPTOracle, RandomOpt, BayesOpt
+from Oracles import GBPTOracle, SimpleOracle, BayesOpt
 import pandas as pd
 
 from hebo.design_space.design_space import DesignSpace
@@ -273,13 +273,13 @@ def flatten_dict(d: dict, delimiter="/") -> dict:
 
 class Logger(tune.logger.Logger):
     def __init__(
-        self, config, oracle="GBPTHEBO", dataset="FMNIST", net="LeNet", iteration=0
+        self, config, search_algo="GBPTHEBO", dataset="FMNIST", net="LeNet", iteration=0
     ):
         self.config = config
         timestamp = datetime.utcnow().strftime("%H_%M_%d_%m_%Y")
         directory = os.path.join(DEFAULT_PATH, dataset, timestamp)
         os.makedirs(directory, exist_ok=True)
-        filename = oracle + "_" + net + "_" + str(iteration) + ".csv"
+        filename = search_algo + "_" + net + "_" + str(iteration) + ".csv"
         progress_file = os.path.join(directory, filename)
         self.logdir = progress_file
         self._continuing = os.path.exists(progress_file)
@@ -320,7 +320,7 @@ def main():
         "--algo",
         type=str,
         required=False,
-        choices=["GPBTHEBO", "GPBT", "HEBO", "RAND", "HO", "PBT", "PB2", "BOHB"],
+        choices=["GPBTHEBO", "GPBT", "HEBO", "RAND", "BAYES", "PBT", "PB2", "BOHB"],
         default="GPBTHEBO",
         help="Dataset used",
     )
@@ -351,6 +351,10 @@ def main():
                 {"name": "dataset", "type": "cat", "categories": [args.dataset]},
             ]
         )
+    elif args.algo == "RAND":
+        search_algo = partial(tpe.rand.suggest)
+    elif args.algo == "BAYES":
+        search_algo = partial(tpe.suggest, n_startup_jobs=1)
 
     NUM_CONFIGURATION = 2
     ITERATIONS = 1
@@ -358,7 +362,13 @@ def main():
 
     for i in range(NUM_EXPERIMENTS):
         model = general_model
-        logger = Logger(config, dataset=args.dataset, net=args.net, iteration=i)
+        logger = Logger(
+            config,
+            search_algo=args.algo,
+            dataset=args.dataset,
+            net=args.net,
+            iteration=i,
+        )
 
         if args.algo == "GBPT" or args.algo == "GBPTHEBO":
             oracle = GBPTOracle(
@@ -370,8 +380,8 @@ def main():
             start_time = datetime.utcnow()
             scheduler.initialisation()
             scheduler.loop()
-        elif args.algo == "RAND":
-            oracle = RandomOpt(config)
+        elif args.algo == "RAND" or args.algo == "BAYES":
+            oracle = SimpleOracle(config, search_algo)
             start_time = datetime.utcnow()
             fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)
             oracle.compute_Once(fmin_objective, NUM_CONFIGURATION)

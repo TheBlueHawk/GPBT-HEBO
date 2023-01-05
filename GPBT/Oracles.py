@@ -63,15 +63,16 @@ class GBPTOracle:
         self.store_trials(trials)
 
 
-class RandomOpt:
-    def __init__(self, searchspace):
+class SimpleOracle:
+    def __init__(self, searchspace, search_algo):
+        self.search_algo = search_algo
         self.searchspace = searchspace
 
     def compute_Once(self, function, evals):
         fmin(
             function,
             self.searchspace,
-            algo=partial(tpe.rand.suggest),
+            algo=self.search_algo,
             max_evals=evals,
             trials=Trials(),
         )
