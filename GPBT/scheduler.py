@@ -19,10 +19,14 @@ from datetime import *
 import ray
 from ray.tune.schedulers.hb_bohb import HyperBandForBOHB
 from ray.tune.suggest import ConcurrencyLimiter
+from ray.tune.suggest.hyperopt import HyperOptSearch
 from ray import tune
 from ray.tune.suggest.bohb import TuneBOHB
-
+from ray.tune.schedulers.pb2 import PB2
+from ray.tune.schedulers.pbt import PopulationBasedTraining
 from ray.tune.logger import CSVLoggerCallback
+from torch.linalg import solve_triangular
+
 
 DEFAULT_PATH = "./tmp/data"
 os.makedirs(DEFAULT_PATH, exist_ok=True)
@@ -305,6 +309,10 @@ class Logger(tune.logger.Logger):
 
 
 def main():
+    NUM_CONFIGURATION = 2
+    ITERATIONS = 1
+    NUM_EXPERIMENTS = 1
+
     parser = argparse.ArgumentParser(description="Hyperparameter optimization")
     parser.add_argument(
         "--net",
@@ -357,17 +365,51 @@ def main():
                 {"name": "dataset", "type": "cat", "categories": [args.dataset]},
             ]
         )
+    if args.algo == "PB2":
+        hp_bounds = config = {
+            "b1": [1e-4, 1e-1],
+            "b2": [1e-5, 1e-2],
+            "iteration": [0],
+            "droupout_prob": [0, 1],
+            "lr": [1e-5, 1],
+            "weight_decay": [0, 1],
+            "net": [args.net],
+            "dataset": [args.dataset],
+        }
+        config = {
+            "b1": tune.uniform(1e-4, 1e-1),
+            "b2": tune.uniform(1e-5, 1e-2),
+            "iteration": [0],
+            "droupout_prob": tune.uniform(0, 1),
+            "lr": tune.uniform(1e-5, 1),
+            "weight_decay": tune.uniform(0, 1),
+            "net": args.net,
+            "dataset": args.dataset,
+        }
+
     elif args.algo == "RAND":
         search_algo = partial(tpe.rand.suggest)
     elif args.algo == "BAYES":
         search_algo = partial(tpe.suggest, n_startup_jobs=1)
     elif args.algo == "BOHB":
         search_algo = TuneBOHB(metric="loss", mode="max")
+        scheduler = HyperBandForBOHB(
+            time_attr="training_iteration",
+            metric="loss",
+            mode="max",
+            max_t=ITERATIONS,
+        )
+    elif args.algo == "PB2":
+        search_algo = ConcurrencyLimiter(
+            HyperOptSearch(metric="loss", mode="max"), max_concurrent=NUM_CONFIGURATION
+        )
+        scheduler = PB2(
+            time_attr="training_iteration",
+            perturbation_interval=2,
+            hyperparam_bounds=hp_bounds,
+        )
 
-    NUM_CONFIGURATION = 2
-    ITERATIONS = 1
-    NUM_EXPERIMENTS = 1
-
+    # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
         start_time = datetime.utcnow()
         logger = Logger(
@@ -391,27 +433,28 @@ def main():
             scheduler.loop()
         elif args.algo == "RAND" or args.algo == "BAYES":
             oracle = SimpleOracle(config, search_algo)
-
             fmin_objective = partial(basic_loop, iterations=ITERATIONS, logger=logger)
             oracle.compute_Once(fmin_objective, NUM_CONFIGURATION)
-        elif args.algo == "BOHB":
+        elif args.algo == "BOHB" or args.algo == "PB2":
             ray.shutdown()
             ray.init()
-            bohb = HyperBandForBOHB(
-                time_attr="training_iteration",
-                metric="loss",
-                mode="max",
-                max_t=ITERATIONS,
-            )
+
             analysis = tune.run(
                 general_model,
                 config=config,
-                scheduler=bohb,
+                scheduler=scheduler,
                 search_alg=search_algo,
                 num_samples=NUM_CONFIGURATION,
+                mode="max",
+                metric="loss",
                 loggers=[Logger],
+                checkpoint_at_end=True,
+                stop={"training_iteration": ITERATIONS},
                 resources_per_trial={"cpu": 8, "gpu": 1},
+                verbose=2,
             )
+
+        a = solve_triangular(a, b)
 
         print("totalt time: " + str(datetime.utcnow() - start_time))
 
