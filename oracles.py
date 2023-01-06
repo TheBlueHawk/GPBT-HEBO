@@ -158,8 +158,7 @@ class HEBOOralce:
     def compute_batch(self, num_config, iterations, logger):
         for i in range(iterations):
             print("iteration: ",i)
-            set_iteration(self.algo, i)
-            rec = self.algo.suggest(n_suggestions=1, fix_input={"iteration": i})
+            rec = self.algo.suggest(n_suggestions=1)
             rec1 = rec.to_dict()
             for key in rec1:
                 rec1[key] = rec1[key][list(rec1[key].keys())[0]]
