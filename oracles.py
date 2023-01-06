@@ -5,6 +5,7 @@ from hebo.optimizers.hebo import HEBO
 import pandas as pd
 import hyperopt
 from hyperopt import hp, fmin, tpe, Trials
+from general_model import general_model
 
 
 def set_iteration(algo, iteration):
@@ -35,7 +36,8 @@ class GPBTOracle:
     def repeat_good(self, trials, iteration, function, configuration):  # add space
         space = copy.deepcopy(configuration)
         for k, v in configuration.items():
-            space[k] = hp.uniform(k, -1e-10 + v, v + 1e-10)
+            if not isinstance(v, str):
+                space[k] = hp.uniform(k, -1e-10 + v, v + 1e-10)
 
         curr_eval = getattr(trials, "_ids")
         if curr_eval == set():
@@ -142,3 +144,42 @@ class GPBTHEBOracle:
             res = np.array([np.array([function(rec1)])])
             self.algo.observe(rec, res)
         self.store_trials(trials)
+
+class HEBOOralce:
+    def __init__(self, searchspace):
+        self.searchspace = searchspace
+        self.algo = HEBO(searchspace)
+        self.model = None
+
+    def reset(self):
+        self.algo = HEBO(self.searchspace)
+        self.model = None
+
+    def compute_batch(self, iterations, logger):
+        for i in range(iterations):
+            rec = self.algo.suggest(n_suggestions=1)
+            rec1 = rec.to_dict()
+            for key in rec1:
+                rec1[key] = rec1[key][list(rec1[key].keys())[0]]
+
+            if self.model is None:
+                self.model = general_model(rec1)
+            else:
+                self.model.adapt(rec1)
+
+            self.model.train1()
+            loss = self.model.test1()
+            test = self.model.val1()
+            # print("--- %s seconds ---" % (time.time() - start_time))
+
+            temp = dict(rec1)
+            temp.update({"iteration": i})
+            temp.update({"loss": loss})
+            temp.update({"test": test})
+            logger.on_result(temp)
+            print("accuracy: " + str(loss) + "\n")
+
+            self.algo.observe(rec, np.array([-loss]))
+
+
+
