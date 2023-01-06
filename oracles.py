@@ -169,7 +169,7 @@ class HEBOOralce:
             # print("--- %s seconds ---" % (time.time() - start_time))
 
             temp = dict(rec1)
-            temp.udate({"iteration": i})
+            temp.update({"iteration": i})
             temp.update({"loss": loss})
             temp.update({"test": test})
             logger.on_result(temp)
