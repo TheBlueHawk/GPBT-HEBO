@@ -13,7 +13,7 @@ from ray.tune.schedulers.pb2 import PB2
 from ray.tune.schedulers.pbt import PopulationBasedTraining
 from ray.tune.schedulers.hb_bohb import HyperBandForBOHB
 
-from oracles import GPBTHEBOracle, SimpleOracle, GPBTOracle
+from oracles import GPBTHEBOracle, SimpleOracle, GPBTOracle, HEBOOralce
 from scheduler import Scheduler
 from general_model import general_model
 from utils import Logger
@@ -149,6 +149,7 @@ def main():
             hyperparam_mutations=hp_bounds,
         )
     elif args.algo == "GPBT":
+        config.pop("iteration")
         oracle = GPBTOracle(searchspace=config)
     elif args.algo == "GPBTHEBO":
         search_algo = HEBO
@@ -157,6 +158,9 @@ def main():
             search_algo=search_algo,
             verbose=False,
         )
+    elif args.algo == "HEBO":
+        oracle = HEBOOralce(searchspace=config)
+
 
     # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
@@ -193,8 +197,10 @@ def main():
             scheduler = Scheduler(
                 general_model, ITERATIONS, NUM_CONFIGURATION, oracle, logger
             )
-            scheduler.initialisation()
+            scheduler.initialisation(args.algo)
             scheduler.loop()
+        elif args.algo == "HEBO":
+            oracle.compute_batch(ITERATIONS, logger)
 
         print("totalt time: " + str(datetime.utcnow() - start_time))
 
