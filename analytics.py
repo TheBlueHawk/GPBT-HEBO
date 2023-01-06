@@ -7,9 +7,6 @@ import math
 import os
 
 
-DEFAULT_PATH = "./results"
-
-
 def fonc(data):
     itera = data[:, 5:6]
     itera = itera[~np.isnan(itera)]
@@ -47,13 +44,16 @@ def getall(a):
     return (f, a[:, 1::2].std(1) / 2, g, a[:, 0::2].std(1) / 2)
 
 
-def analyse_result_files(algo, model, num_iteration, filepath, val, N):
+def analyse_result_files(algo, model, num_iteration, filepath, val, N, tune):
     algo_results = []
     for iteration in range(num_iteration):
         filename = algo + "_" + model + "_" + str(iteration) + ".csv"
         filename = os.path.join(filepath, filename)
         logs = genfromtxt(filename, delimiter=",")
-        test_loss = logs[np.argsort(logs[:, -5], axis=-1, kind="stable")][:, -2:]
+        if tune:
+            test_loss = fonc(logs)
+        else:
+            test_loss = logs[np.argsort(logs[:, -5], axis=-1, kind="stable")][:, -2:]
         test_loss = maxof(test_loss[:, ::], N)
         algo_results.append(test_loss)
     [mean_test, std_test, mean_val, std_val] = getall(
@@ -73,24 +73,34 @@ def analyse_result_files(algo, model, num_iteration, filepath, val, N):
 
 def process(
     dataset: str,
-    algos=["RAND"],
+    algos=[],
     fast_algos=[],
+    tune_algos=[],
     model="LeNet",
     num_iteration=10,
     val=False,
+    ymin=0.6,
+    ymax=1,
+    xmin=0,
+    xmax=600,
 ):
     for algo in algos:
         path = os.path.join("./results", dataset)
-        analyse_result_files(algo, model, num_iteration, path, val, 250)
+        analyse_result_files(algo, model, num_iteration, path, val, 250, False)
     for algo in fast_algos:
         path = os.path.join("./results", dataset, "FAST")
-        analyse_result_files(algo, model, num_iteration, path, val, 80)
+        analyse_result_files(algo, model, num_iteration, path, val, 80, False)
+    for algo in tune_algos:
+        path = os.path.join("./results", dataset, "TUNE")
+        analyse_result_files(algo, model, num_iteration, path, val, 250, True)
 
     axes = plt.gca()
-    axes.set_ylabel("accuracy", fontsize=16)
-    axes.set_xlabel("execution time (s)", fontsize=16)
-    # plt.xticks([0, 200, 400], fontsize=16)
-    plt.yticks([0.72, 0.80, 0.88, 0.98], fontsize=16)
+    axes.set_ylabel("accuracy", fontsize=12)
+    axes.set_xlabel("execution time (s)", fontsize=12)
+    axes.set_ylim(ymin, ymax)
+    axes.set_xlim(xmin, xmax)
+    plt.xticks(fontsize=9)
+    plt.yticks(fontsize=9)
     plt.legend()
     if val:
         filename = dataset + "_" + "val.png"
