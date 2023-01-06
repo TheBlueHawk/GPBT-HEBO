@@ -27,10 +27,6 @@ class Parent:
     def replication(self, n_children):
         self.is_replicated = True
 
-    #  self.configuration_list.append(self.configuration_list[-1])
-    #  self.loss_list=np.append(self.loss_list,self.loss_list[-1])
-    #    replication_trials(self.point_hyperspace.trials, n_children)
-
     def get_last_conf(self):
         return self.configuration_list[-1]
 
@@ -62,15 +58,10 @@ def test_function(x, models, h, losses, parent_model, k_f, iteration, logger):
     if Islist:
         k_f[0] += 1
 
-    # for key, value in x.items():
-    #        print(key + " "+str(x[key]))
-
     h[k] = x
-    # start_time = time.time()
     models[k].train1()
     loss = models[k].test1()
     test = models[k].val1()
-    # print("--- %s seconds ---" % (time.time() - start_time))
 
     temp = dict(x)
     temp.update({"loss": loss})
@@ -88,7 +79,6 @@ class Scheduler:
         self.oracle = oracle
         self.iteration = num_iteration
         self.num_config = num_config
-        # self.sqrt_config = math.floor(math.sqrt(num_config))
         self.sqrt_config = math.ceil(num_config / 5)  #
 
         self.n_parents = self.sqrt_config
@@ -114,12 +104,11 @@ class Scheduler:
         self.losses = np.zeros(num_config)
         self.k = [
             0
-        ]  # c'est pour avoir un pointeur sur k, c'est pas plus que O(sqrt)-paralélisable  pour le moment du coup.
+        ]
         self.logger = logger
 
     def initialisation(self, model_type = ""):
         num_config = self.num_config
-        # extended_Hyperspace = Trials() #[None,None]
         extended_Hyperspace = [[], []]
         if model_type == "GPBT": extended_Hyperspace = Trials()
         fmin_objective = partial(
@@ -136,7 +125,6 @@ class Scheduler:
 
         indexes = np.argsort(self.losses)
         self.out[0] = (self.losses[indexes])[0 : self.sqrt_config]
-        # self.hyperspaces = np.repeat(extended_Hyperspace,self.sqrt_config)
         self.hyperspaces = [extended_Hyperspace] * self.sqrt_config
         if model_type == "GPBT": self.hyperspaces = np.repeat(extended_Hyperspace, self.sqrt_config)
         self.parents = np.array(
@@ -153,7 +141,6 @@ class Scheduler:
         self.plot[0] = self.losses[indexes][0]
 
     def loop(self):
-        sqrt_config = self.sqrt_config
         iteration = self.iteration
         for i in range(1, iteration):
 
@@ -205,9 +192,6 @@ class Scheduler:
                 # Store new hyperspace points for parent, so that they get copied to new parent
                 parent.set_point_hyperspace(point_extended_hyperspace)
 
-            # self.oracle.Repeat_good(extended_Hyperspace ,i ,fmin_objective,parent.configuration_list[-1])
-            #   self.oracle.compute_Batch(extended_Hyperspace ,int(self.num_config/sqrt_config) -1 , i ,fmin_objective)
-
             print("totalt time: " + str(time.time() - start_time))
 
             combined_losses = np.concatenate(
@@ -224,12 +208,9 @@ class Scheduler:
             parent_idx = ixs_parents[: self.n_parents]
             print(combined_losses)
             print(parent_idx)
-            # ??? why saving it in a numpt array ?
-            # It is creating the new Parent `array`
             temp_parents = [""] * self.n_parents
 
             for j, x in enumerate(parent_idx):
-                # ??? why converting it to integer ?
                 x = int(x)
                 if x >= self.num_config:
                     temp_parents[j] = copy.deepcopy(self.parents[x - self.num_config])
@@ -239,5 +220,4 @@ class Scheduler:
                         self.parents[math.floor(x / self.num_config * self.n_parents)]
                     )
                     temp_parents[j].update(self.h[x], self.losses[x], self.models[x])
-            #     temp_parents[j].point_hyperspace = Trials()
             self.parents = temp_parents

@@ -4,24 +4,16 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-import numpy as np
-import random
-import math
-from ray import tune
-from hyperopt import hp, fmin, tpe, Trials
-from functools import *
 from ray.tune.logger import *
 import copy
-from torchvision import models
-import time
-from typing import *
+
 
 import torch.backends.mps
 
 from nets import LeNet
 
 EPOCH_SIZE = 32 * 32 * 8 * 32
-TEST_SIZE = 256 * 32 * 32  # remove 1024
+TEST_SIZE = 256 * 32 * 32
 
 
 def compute_dataset_stats(train_loader: DataLoader):
