@@ -164,6 +164,7 @@ def main():
 
     # Main experiment loop
     for i in range(NUM_EXPERIMENTS):
+        print("#"*20, f" Experiment: {i} ", "#"*20)
         start_time = datetime.utcnow()
         logger = Logger(
             config,
@@ -200,6 +201,7 @@ def main():
             scheduler.initialisation(args.algo)
             scheduler.loop()
         elif args.algo == "HEBO":
+            oracle.reset()
             oracle.compute_batch(ITERATIONS, logger)
 
         print("totalt time: " + str(datetime.utcnow() - start_time))

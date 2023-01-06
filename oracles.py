@@ -151,6 +151,10 @@ class HEBOOralce:
         self.algo = HEBO(searchspace)
         self.model = None
 
+    def reset(self):
+        self.algo = HEBO(self.searchspace)
+        self.model = None
+
     def compute_batch(self, iterations, logger):
         for i in range(iterations):
             rec = self.algo.suggest(n_suggestions=1)
