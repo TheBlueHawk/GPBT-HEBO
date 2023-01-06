@@ -3,6 +3,7 @@ import math
 import time
 import numpy as np
 from functools import partial
+from hyperopt import Trials
 
 
 class Parent:
@@ -116,10 +117,11 @@ class Scheduler:
         ]  # c'est pour avoir un pointeur sur k, c'est pas plus que O(sqrt)-paralélisable  pour le moment du coup.
         self.logger = logger
 
-    def initialisation(self):
+    def initialisation(self, model_type = ""):
         num_config = self.num_config
         # extended_Hyperspace = Trials() #[None,None]
         extended_Hyperspace = [[], []]
+        if model_type == "GPBT": extended_Hyperspace = Trials()
         fmin_objective = partial(
             test_function,
             models=self.models,
@@ -136,6 +138,7 @@ class Scheduler:
         self.out[0] = (self.losses[indexes])[0 : self.sqrt_config]
         # self.hyperspaces = np.repeat(extended_Hyperspace,self.sqrt_config)
         self.hyperspaces = [extended_Hyperspace] * self.sqrt_config
+        if model_type == "GPBT": self.hyperspaces = np.repeat(extended_Hyperspace, self.sqrt_config)
         self.parents = np.array(
             [
                 Parent(
