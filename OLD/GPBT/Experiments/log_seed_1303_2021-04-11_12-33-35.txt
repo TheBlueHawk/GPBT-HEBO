@@ -1,6 +1,0 @@
-save path : ./
-{'arch': 'resnet18', 'batch_size': 64, 'data_path': './data/cifar.python --dataset cifar10 --arch simplenet --save_path ./snapshots/simplenet --epochs 540 --batch_size 100 --workers 2 save path : ./snapshots/simplenet', 'dataset': None, 'decay': 0.002, 'epochs': 700, 'evaluate': False, 'learning_rate': 0.1, 'manualSeed': 1303, 'momentum': 0.9, 'ngpu': 1, 'print_freq': 20, 'resume': '', 'save_path': './', 'start_epoch': 0, 'use_cuda': False, 'workers': 2}
-Random Seed: 1303
-python version : 3.7.7 (default, May  7 2020, 21:25:33)  [GCC 7.3.0]
-torch  version : 1.6.0+cpu
-cudnn  version : None
