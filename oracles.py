@@ -169,16 +169,22 @@ class HEBOOralce:
                 # for j in range(iterations):
                 self.model.train1(verbose=False)
                 loss = self.model.test1()
+                test = self.model.val1()
                 print(f"accuracy sub model: {loss}")
                 losses.append(loss)
-                tests.append(self.model.val1())
+                tests.append(test)
+                temp = rec1
+                temp.update({"iteration": i})
+                temp.update({"loss": loss})
+                temp.update({"test": test})
+                logger.on_result(temp)
                 # print("--- %s seconds ---" % (time.time() - start_time))
 
             best_idx = int(np.argsort(losses)[-1])
-            temp = records.iloc[[best_idx]].to_dict('records')[0]
+            """temp = records.iloc[[best_idx]].to_dict('records')[0]
             temp.update({"iteration": i})
             temp.update({"loss": losses[best_idx]})
             temp.update({"test": tests[best_idx]})
-            logger.on_result(temp)
+            logger.on_result(temp)"""
             print("accuracy: " + str(losses[best_idx]) + "\n")
             self.algo.observe(records, np.asarray([[l] for l in losses]))
