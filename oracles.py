@@ -3,7 +3,6 @@ from functools import partial
 import numpy as np
 from hebo.optimizers.hebo import HEBO
 import pandas as pd
-import hyperopt
 from hyperopt import hp, fmin, tpe, Trials
 from general_model import general_model
 
@@ -179,10 +178,5 @@ class HEBOOralce:
                 logger.on_result(temp)
 
             best_idx = np.argsort(losses)[-1]
-            """temp = records.iloc[[best_idx]].to_dict('records')[0]
-            temp.update({"iteration": i})
-            temp.update({"loss": losses[best_idx]})
-            temp.update({"test": tests[best_idx]})
-            logger.on_result(temp)"""
             print("accuracy: " + str(losses[best_idx]) + "\n")
             self.algo.observe(rec, np.asarray([-(losses[best_idx])]))
