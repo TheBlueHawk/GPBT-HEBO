@@ -202,7 +202,7 @@ def main():
             scheduler.loop()
         elif args.algo == "HEBO":
             oracle.reset()
-            oracle.compute_batch(ITERATIONS, logger)
+            oracle.compute_batch(NUM_CONFIGURATION, ITERATIONS, logger)
 
         print("totalt time: " + str(datetime.utcnow() - start_time))
 
