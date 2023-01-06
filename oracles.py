@@ -153,33 +153,34 @@ class HEBOOralce:
 
     def reset(self):
         self.algo = HEBO(self.searchspace)
-        self.model = None
 
-    def compute_batch(self, iterations, logger):
-        for i in range(iterations):
+    def compute_batch(self, num_config, iterations, logger):
+        for i in range(num_config):
             rec = self.algo.suggest(n_suggestions=1)
             rec1 = rec.to_dict()
             for key in rec1:
                 rec1[key] = rec1[key][list(rec1[key].keys())[0]]
 
-            if self.model is None:
-                self.model = general_model(rec1)
-            else:
-                self.model.adapt(rec1)
+            self.model = general_model(rec1)
 
-            self.model.train1()
-            loss = self.model.test1()
-            test = self.model.val1()
-            # print("--- %s seconds ---" % (time.time() - start_time))
+            losses= []
+            tests = []
 
+            for j in range(iterations):
+                self.model.train1()
+                losses.append(-self.model.test1())
+                tests.append(self.model.val1())
+                # print("--- %s seconds ---" % (time.time() - start_time))
+
+            best_idx = np.argsort(losses)[0]
             temp = dict(rec1)
             temp.update({"iteration": i})
-            temp.update({"loss": loss})
-            temp.update({"test": test})
+            temp.update({"loss": -losses[best_idx]})
+            temp.update({"test": tests[best_idx]})
             logger.on_result(temp)
-            print("accuracy: " + str(loss) + "\n")
+            print("accuracy: " + str(-losses[best_idx]) + "\n")
 
-            self.algo.observe(rec, np.array([-loss]))
+            self.algo.observe(rec, np.array([losses[best_idx]]))
 
 
 
