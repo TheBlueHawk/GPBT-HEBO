@@ -145,6 +145,7 @@ class GPBTHEBOracle:
             self.algo.observe(rec, res)
         self.store_trials(trials)
 
+
 class HEBOOralce:
     def __init__(self, searchspace):
         self.searchspace = searchspace
@@ -155,18 +156,15 @@ class HEBOOralce:
         self.algo = HEBO(self.searchspace)
 
     def compute_batch(self, num_config, iterations, logger):
-        for i in range(num_config):
-            rec = self.algo.suggest(n_suggestions=1)
-            rec1 = rec.to_dict()
-            for key in rec1:
-                rec1[key] = rec1[key][list(rec1[key].keys())[0]]
-
-            self.model = general_model(rec1)
-
-            losses= []
+        for i in range(iterations):
+            records = self.algo.suggest(n_suggestions=num_config)
+            losses = []
             tests = []
+            for idx, rec in records.iterrows():
+                rec1 = rec.to_dict()
 
-            for j in range(iterations):
+                self.model = general_model(rec1)
+                # for j in range(iterations):
                 self.model.train1()
                 losses.append(-self.model.test1())
                 tests.append(self.model.val1())
@@ -179,8 +177,4 @@ class HEBOOralce:
             temp.update({"test": tests[best_idx]})
             logger.on_result(temp)
             print("accuracy: " + str(-losses[best_idx]) + "\n")
-
-            self.algo.observe(rec, np.array([losses[best_idx]]))
-
-
-
+            self.algo.observe(records, np.array([-1 * losses]))
