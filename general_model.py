@@ -258,8 +258,9 @@ class general_model:
 
     # All NN models should have a function train1 and test1 that calls the common train and test defined above.
     # train1 and test1 is then used in the scheduler
-    def train1(self):
-        print("iteration: " + str(self.i))
+    def train1(self, verbose = True):
+        if verbose:
+            print("iteration: " + str(self.i))
         self.i += 1
         train(self.model, self.optimizer, F.nll_loss, self.train_loader)
 
