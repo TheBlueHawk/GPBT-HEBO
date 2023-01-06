@@ -159,32 +159,31 @@ class HEBOOralce:
         for i in range(iterations):
             print("iteration: ",i)
             set_iteration(self.algo, i)
-            records = self.algo.suggest(n_suggestions=num_config, fix_input={"iteration": i})
+            rec = self.algo.suggest(n_suggestions=1, fix_input={"iteration": i})
+            rec1 = rec.to_dict()
+            for key in rec1:
+                rec1[key] = rec1[key][list(rec1[key].keys())[0]]
+            self.model = general_model(rec1)
             losses = []
-            tests = []
-            for idx, rec in records.iterrows():
-                rec1 = rec.to_dict()
+            for j in range(num_config):
 
-                self.model = general_model(rec1)
                 # for j in range(iterations):
                 self.model.train1(verbose=False)
                 loss = self.model.test1()
+                losses.append(loss)
                 test = self.model.val1()
                 print(f"accuracy sub model: {loss}")
-                losses.append(loss)
-                tests.append(test)
                 temp = rec1
                 temp.update({"iteration": i})
                 temp.update({"loss": loss})
                 temp.update({"test": test})
                 logger.on_result(temp)
-                # print("--- %s seconds ---" % (time.time() - start_time))
 
-            best_idx = int(np.argsort(losses)[-1])
+            best_idx = np.argsort(losses)[-1]
             """temp = records.iloc[[best_idx]].to_dict('records')[0]
             temp.update({"iteration": i})
             temp.update({"loss": losses[best_idx]})
             temp.update({"test": tests[best_idx]})
             logger.on_result(temp)"""
             print("accuracy: " + str(losses[best_idx]) + "\n")
-            self.algo.observe(records, np.asarray([[l] for l in losses]))
+            self.algo.observe(rec, np.asarray([losses[best_idx]]))
