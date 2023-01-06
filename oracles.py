@@ -185,4 +185,4 @@ class HEBOOralce:
             temp.update({"test": tests[best_idx]})
             logger.on_result(temp)"""
             print("accuracy: " + str(losses[best_idx]) + "\n")
-            self.algo.observe(rec, np.asarray([losses[best_idx]]))
+            self.algo.observe(rec, np.asarray([-(losses[best_idx])]))
