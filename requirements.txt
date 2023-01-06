@@ -1,7 +1,8 @@
-#ray==1.2.0
-ray==1.8.0
+ray==1.2.0
+# ray==1.8.0
 ray[tune]
 hyperopt
 torchvision
 torch
+hebo
 numpy<1.24.0   # Some of our dependencies use np.float, which no longer exists after 1.24.

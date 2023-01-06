@@ -7,7 +7,7 @@ import math
 import os
 
 
-DEFAULT_PATH = "./tmp/data"
+DEFAULT_PATH = "./tmp/data/"
 
 
 def fonc(data):
@@ -50,7 +50,7 @@ def getall(a):
 def process(algo="GPBTHEBO", dataset="FMNIST", model="LeNet", num_iteration=10):
     results = []
     for iteration in num_iteration:
-        filename = algo + "_" + dataset + "_" + model + "_" + str(iteration) + ".csv"
+        filename = algo + "_" + model + "_" + str(iteration) + ".csv"
         filename = os.path.join(DEFAULT_PATH, filename)
         logs = genfromtxt(filename, delimiter=",")
         test_loss = logs[np.argsort(logs[:, -5], axis=-1, kind="stable")][:, -2:]
